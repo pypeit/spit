@@ -27,7 +27,7 @@ env:
         # The following versions are the 'default' for tests, unless
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - FOLDERNAME='arclines'
+        - FOLDERNAME='auto_type'
         - PYTHON_VERSION=3.6
         - ASTROPY_VERSION=stable
         - NUMPY_VERSION=stable
@@ -158,4 +158,4 @@ script:
 
 
 after_success:
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='arclines/tests/coveragerc'; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='auto_type/tests/coveragerc'; fi
