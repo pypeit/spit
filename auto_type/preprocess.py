@@ -85,7 +85,7 @@ def resize_image(image_data, sess):
     
     return padded_image
 
-def load_data_cropped200x600(data_type):
+def load_data_cropped200x600(data_type, img_path='/soe/vjankov/scratchdisk/'):
     image_data = {}
     """
     a)
@@ -116,30 +116,30 @@ def load_data_cropped200x600(data_type):
         load_batch_size = 5400
 
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/bias_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/science_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/standard_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/arc_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/flat_train/*"]
+                img_path+"viktor_astroimage/bias_train/*", \
+                img_path+"viktor_astroimage/science_train/*", \
+                img_path+"viktor_astroimage/standard_train/*", \
+                img_path+"viktor_astroimage/arc_train/*", \
+                img_path+"viktor_astroimage/flat_train/*"]
         
     elif data_type == "test_data":
         load_batch_size = 1650
 
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/bias_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/science_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/standard_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/arc_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/flat_test/*"]
+                img_path+"viktor_astroimage/bias_test/*", \
+                img_path+"viktor_astroimage/science_test/*", \
+                img_path+"viktor_astroimage/standard_test/*", \
+                img_path+"viktor_astroimage/arc_test/*", \
+                img_path+"viktor_astroimage/flat_test/*"]
 
     elif data_type == "validation_data":
         load_batch_size = 1350
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/bias_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/science_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/standard_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/arc_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/flat_validation/*"]
+                img_path+"viktor_astroimage/bias_validation/*", \
+                img_path+"viktor_astroimage/science_validation/*", \
+                img_path+"viktor_astroimage/standard_validation/*", \
+                img_path+"viktor_astroimage/arc_validation/*", \
+                img_path+"viktor_astroimage/flat_validation/*"]
         
     # Construct the dict arrays
     raw_data = []
@@ -183,7 +183,7 @@ def load_data_cropped200x600(data_type):
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
 
-def load_linear_pngs(data_type):
+def load_linear_pngs(data_type, img_path='/soe/vjankov/scratchdisk/'):
     image_data = {}
     bias_label = 0
     science_label = 1
@@ -195,32 +195,32 @@ def load_linear_pngs(data_type):
     if data_type == "train_data":
         load_batch_size = 504
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/bias_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/standard_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/arc_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/flat_train/*",\
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/bias_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/standard_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/arc_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/flat_validation/*",\
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/bias_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_enforced/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/standard_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/arc_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/flat_test/*"]
+                img_path+"viktor_astroimage/linear_datasets/bias_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/standard_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/arc_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/flat_train/*",\
+                img_path+"viktor_astroimage/linear_datasets/bias_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/standard_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/arc_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/flat_validation/*",\
+                img_path+"viktor_astroimage/linear_datasets/bias_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_enforced/*", \
+                img_path+"viktor_astroimage/linear_datasets/standard_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/arc_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/flat_test/*"]
 
         
     elif data_type == "test_data":
         load_batch_size = 160
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_bias_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_science_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_standard_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_arc_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_flat_test/*"]
+                img_path+"viktor_astroimage/linear_datasets/real_bias_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_science_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_standard_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_arc_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_flat_test/*"]
                 
     # Construct the dict arrays
     raw_data = []
