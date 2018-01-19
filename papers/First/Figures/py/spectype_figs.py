@@ -27,13 +27,7 @@ from ginga.util import zscale
 #import coshalo_lls as chlls
 
 
-
-def fig_images(field=None, outfil=None):
-    """ Spectral images
-    """
-    # Init
-    if outfil is None:
-        outfil = 'fig_spec_images.png'
+def setup_image_set(set=['all']):
     # Images
     img_path = os.getenv('HOME')+'/Lick/Kast/data/2014aug28/Raw/'
     images = []
@@ -42,6 +36,24 @@ def fig_images(field=None, outfil=None):
     images.append(dict(type='Arc', frame='b294'))
     images.append(dict(type='Standard', frame='b289'))
     images.append(dict(type='Science', frame='b264'))
+    # Parse
+    if set[0] == 'all':
+        final_images = images
+    else:
+        final_images = []
+        for kk,image in enumerate(images):
+            if image['type'] in set:
+                final_images.append(images[kk].copy())
+    # Return
+    return img_path, final_images
+
+def fig_images(field=None, outfil=None):
+    """ Spectral images
+    """
+    # Init
+    if outfil is None:
+        outfil = 'fig_spec_images.png'
+    img_path, images = setup_image_set()
 
     # Targets only
     plt.figure(figsize=(5, 5))
@@ -82,6 +94,54 @@ def fig_images(field=None, outfil=None):
     plt.close()
     print("Wrote: {:s}".format(outfil))
 
+def fig_zscale(field=None, outfil=None):
+    """ Compare two views of the same image.
+    With and without ZSCALE
+    """
+    # Init
+    if outfil is None:
+        outfil = 'fig_zscale.png'
+    img_path, images = setup_image_set(set=['Bias'])
+    # Load bias
+    hdu = fits.open(img_path+images[0]['frame']+'.fits.gz')
+    img = hdu[0].data
+
+    # Targets only
+    plt.figure(figsize=(12, 5))
+    plt.clf()
+    gs = gridspec.GridSpec(2,1)
+
+    #plt.suptitle('{:s}: MMT/Hectospec Targets'.format(field[0])
+    #    ,fontsize=19.)
+
+    cm = plt.get_cmap('Greys')
+
+    # Without zscale
+    ax0 = plt.subplot(gs[0])
+    # Plot
+    ax0.imshow(img, cmap=cm, vmin=0, vmax=1062)
+    # Axes
+    ax0.axis('off')
+
+
+    # With zscale
+    ax1 = plt.subplot(gs[1])
+    # z-Scale
+    z1,z2 = zscale.zscale(img)
+
+    # Plot
+    ax1.imshow(img, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
+    # Axes
+    ax1.axis('off')
+
+    # Labels
+    #ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
+    #        size='large', ha='left', va='top')
+
+    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    plt.savefig(outfil, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfil))
 
 
 def set_fontsize(ax,fsz):
@@ -112,14 +172,17 @@ def main(flg_fig):
     if flg_fig & (2**0):
         fig_images()
 
+    # Spectral images
+    if flg_fig & (2**1):
+        fig_zscale()
+
 # Command line execution
 if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         flg_fig = 0
-        flg_fig += 2**0   # Spectral images
-        #flg_fig += 2**1   # Hectospec targeting
-        #flg_fig += 2**2   # Hectospec completeness
+        #flg_fig += 2**0   # Spectral images
+        flg_fig += 2**1   # zscale
     else:
         flg_fig = sys.argv[1]
 
