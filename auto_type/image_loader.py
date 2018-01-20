@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division, unicode_literals
+
 # Requirements:
 import numpy as np, glob, os, sys, scipy
 from astropy.io import fits
@@ -6,6 +8,12 @@ from ginga.web.pgw import ipg
 from PIL import Image
 from enum import Enum
 from scipy import misc
+
+import pdb
+
+from auto_type.preprocess import trim_image
+from auto_type.preprocess import zscale
+from auto_type.utils import congrid
 
 sys.dont_write_bytecode = True
 
@@ -43,6 +51,7 @@ num_classes = 5
 # from the previous running average by this much, then detect an overscan region
 cutoff_percent = 1.10
 
+'''
 def get_viewer_and_server():
     # Set this to True if you have a non-buggy python OpenCv bindings--it greatly speeds up some operations
     use_opencv = False
@@ -78,43 +87,31 @@ def set_viewer_prefs(v1):
 
 def stop_server(server):
     server.stop()
+'''
 
-def cutoff_forw(max_vals):
-    cutoff_point = 0
-    prev_val = 0
-    curr_val = 0
-    for idx in range(1,len(max_vals)):
-        prev_val = max_vals[idx-1]
-        curr_val = max_vals[idx]
-    
-        if curr_val > (cutoff_percent * prev_val):
-            cutoff_point = idx
-            break
 
-    return cutoff_point
+def load_images_arr(image_file, outfile=None):
+    """ Convert an input FITS file into 4 flattened arrays
+    having flipped it around
 
-def cutoff_back(max_vals):
-    max_vals.reverse()
-    cutoff_point = 0
-    prev_val = 0
-    curr_val = 0
-    for idx in range(1,len(max_vals)):
-        prev_val = max_vals[idx-1]
-        curr_val = max_vals[idx]
-    
-        if curr_val > (cutoff_percent * prev_val):
-            cutoff_point = idx
-            break
+    Parameters
+    ----------
+    image_file : str
+      Name of the FITS file
 
-    return cutoff_point
+    Returns
+    -------
+    images_array : ndarray
+      nimgs (4) x flattened image
+    """
 
-def load_images_arr(image_file):
+    #v1, server = get_viewer_and_server()
+    #set_viewer_prefs(v1)
 
-    v1, server = get_viewer_and_server()
-    set_viewer_prefs(v1)
-
-    names = image_file.split(".")
-    filename = names[0]
+    # Paths
+    basename = os.path.basename(image_file)
+    names = basename.split(".")
+    file_root = names[0]
 
     # Open the fits file
     fits_f = fits.open(image_file, 'readonly')
@@ -122,42 +119,30 @@ def load_images_arr(image_file):
     image = hdu.data
     shape = image.shape
 
-    if shape[0] > shape[1]:
-        image = scipy.ndimage.interpolation.rotate(image,angle=90.0)
-        image_data = sigma_clip(image, sigma=3, axis=0).tolist()
+    # Trim
+    image = trim_image(image, cutoff_percent=cutoff_percent)
 
-        max_vals = []
-        for idx, val in enumerate(image_data):
-            max_vals.append(max(val))
+    # Resize
+    rimage = congrid(image.astype(float), (image_height, image_width))
+    pdb.set_trace()
 
-        cutoff_f = cutoff_forw(max_vals)
-        cutoff_b = cutoff_back(max_vals)
-        first  = cutoff_f
-        second = shape[0] - cutoff_b
-        
-        image = image[first:second,:]
+    # zscale
+    zimage = zscale(rimage)
 
-    # Save the png
-    v1.load_data(image)
-    filename = "linear_" + filename + ".png"
-    v1.save_rgb_image_as_file(filename, format='png')
-    stop_server(server)
-
-    image = misc.imread(filename, mode='L')
-    os.remove(filename)
-
-    pil_image = Image.fromarray(image)
+    # Load into PIL
+    pil_image = Image.fromarray(zimage)
+    if outfile is not None:
+        pil_image.save(outfile)
 
     # Generate flipped images 
     pil_image.transpose(Image.FLIP_TOP_BOTTOM)
-    image = np.array(pil_image)
     ver_image = np.array(pil_image.transpose(Image.FLIP_TOP_BOTTOM))
     hor_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT))
     hor_ver_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM))
 
     # Add flipped images to an array
     im_array = []
-    im_array.append(image.flatten())
+    im_array.append(zimage.flatten())
     im_array.append(ver_image.flatten())
     im_array.append(hor_image.flatten())
     im_array.append(hor_ver_image.flatten())
