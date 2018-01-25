@@ -470,6 +470,7 @@ def trim_image(image, **kwargs):
     # Trim and return
     return image[first:second, :]
 
+
 def cutoff_forw(max_vals, cutoff_percent=1.10):
     """ Trim image from the bottom
     max_vals : list
@@ -487,6 +488,7 @@ def cutoff_forw(max_vals, cutoff_percent=1.10):
             break
 
     return cutoff_point
+
 
 def cutoff_back(max_vals, cutoff_percent=1.10):
     """ Trim image from the top
@@ -507,7 +509,8 @@ def cutoff_back(max_vals, cutoff_percent=1.10):
 
     return cutoff_point
 
-def zscale(image, chk=False, contrast=0.25):
+
+def zscale(image, chk=False, contrast=0.25, only_range=False):
     """ Take an input image of any range and return a uint8 image
     scaled by the ZSCALE algorithm
 
@@ -521,11 +524,14 @@ def zscale(image, chk=False, contrast=0.25):
     -------
     zimage : ndarray of unit8
       Ready to be saved as a PNG
+    if only_range is True, return z1,z2
 
     """
     from ginga.util import zscale
     # Find scale range
     z1,z2 = zscale.zscale(image, contrast=contrast)
+    if only_range:
+        return z1, z2
     # Max, min
     cut_data = np.minimum(image, z2)
     cut_data = np.maximum(cut_data, z1)
