@@ -6,8 +6,8 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import glob, os, sys, json
-import warnings
 import pdb
+from pkg_resources import resource_filename
 
 import matplotlib as mpl
 mpl.rcParams['font.family'] = 'stixgeneral'
@@ -15,12 +15,10 @@ from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 
 
-from astropy import units as u
-from astropy import constants as const
-from astropy.coordinates import SkyCoord, match_coordinates_sky
 from astropy.io import fits
 
-from ginga.util import zscale
+from auto_type import preprocess as autyp_p
+
 
 # Local
 #sys.path.append(os.path.abspath("../Analysis/py"))
@@ -73,7 +71,7 @@ def fig_images(field=None, outfil=None):
         img = hdu[0].data
 
         # z-Scale
-        z1,z2 = zscale.zscale(img)
+        z1,z2 = autyp_p.zscale(img, only_range=True)
         #pdb.set_trace()
 
 
@@ -127,10 +125,64 @@ def fig_zscale(field=None, outfil=None):
     # With zscale
     ax1 = plt.subplot(gs[1])
     # z-Scale
-    z1,z2 = zscale.zscale(img)
+    z1,z2 = autyp_p.zscale(img, only_range=True)
 
     # Plot
     ax1.imshow(img, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
+    # Axes
+    ax1.axis('off')
+
+    # Labels
+    #ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
+    #        size='large', ha='left', va='top')
+
+    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    plt.savefig(outfil, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfil))
+
+
+def fig_trim(field=None, outfil=None):
+    """ Compare two views of the same image.
+    With and without ZSCALE
+    """
+    # Init
+    if outfil is None:
+        outfil = 'fig_trim.png'
+
+    # Load image
+    arc_file = resource_filename('auto_type', 'tests/files/r6.fits')
+    hdulist = fits.open(arc_file)
+    img = hdulist[0].data
+
+    # Targets only
+    plt.figure(figsize=(12, 5))
+    plt.clf()
+    gs = gridspec.GridSpec(2,1)
+
+    #plt.suptitle('{:s}: MMT/Hectospec Targets'.format(field[0])
+    #    ,fontsize=19.)
+
+    cm = plt.get_cmap('Greys')
+
+    # Untrimmed
+    z1,z2 = autyp_p.zscale(img, only_range=True)
+
+    ax0 = plt.subplot(gs[0])
+    # Plot
+    ax0.imshow(img, cmap=cm, vmin=z1, vmax=z2)
+    # Axes
+    ax0.axis('off')
+
+
+    # Trimmed
+    timg = autyp_p.trim_image(img)
+    ax1 = plt.subplot(gs[1])
+    # z-Scale
+    z1,z2 = autyp_p.zscale(timg, only_range=True)
+
+    # Plot
+    ax1.imshow(timg, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
     # Axes
     ax1.axis('off')
 
@@ -172,9 +224,13 @@ def main(flg_fig):
     if flg_fig & (2**0):
         fig_images()
 
-    # Spectral images
+    # zscale
     if flg_fig & (2**1):
         fig_zscale()
+
+    # Trim
+    if flg_fig & (2**2):
+        fig_trim()
 
 # Command line execution
 if __name__ == '__main__':
@@ -182,7 +238,8 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         flg_fig = 0
         #flg_fig += 2**0   # Spectral images
-        flg_fig += 2**1   # zscale
+        #flg_fig += 2**1   # zscale
+        flg_fig += 2**2   # trim
     else:
         flg_fig = sys.argv[1]
 
