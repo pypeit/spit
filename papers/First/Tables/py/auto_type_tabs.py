@@ -14,10 +14,15 @@ from pkg_resources import resource_filename
 from astropy import units as u
 from astropy.table import Table
 from astropy.coordinates import SkyCoord, match_coordinates_sky
+from astropy.time import Time
 
 from linetools import utils as ltu
 
 vik_path = '/scratch/citrisdance_viktor/viktor_astroimage/'
+
+ddict = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 
+    'JUN': 6, 'JUNE': 6, 'JUL': 7, 'JULY': 7, 'AUG': 8, 
+    'SEP': 9, 'SEPT': 9, 'OCT': 10, 'NOV': 11, 'DEC': 12}
 
 # Local
 #sys.path.append(os.path.abspath("../Analysis/py"))
@@ -38,72 +43,107 @@ def mktab_training(outfil='tab_training.tex', sub=False):
         key = os.path.basename(iclass)
         all_images[key] = glob.glob(iclass + '/*_rotated.png')
 
+    # Generate a table
+    keys = list(all_images.keys())
+    keys.sort()
+    types, dates, frames, pis, flags = [], [], [], [], []
+    ntrain = 0
+    for key in keys:
+        # Numbmer of images
+        nimg = len(all_images[key])
+        print("We have {:d} images of Type={:s}".format(nimg, key))
+        ntrain += nimg
+        # Type
+        types += [key]*nimg
+        # Loop me
+        for ipath in all_images[key]:
+            # Parse
+            ifile = os.path.basename(ipath)
+            if 'xavier' in ifile:
+                pis += ['Prochaska']
+                # Find date
+                year = ifile[18:22]
+                month = ddict[ifile[22:25].upper()]
+                day = ifile[25:27]
+                dates.append('{:s}-{:d}-{:s}'.format(year,month,day))
+                # Frame
+                i1 = ifile.find('_rotat')
+                frames.append(ifile[32:i1])
+            else:
+                pis += ['Hsyu']
+                # Find date
+                i0 = ifile.find('_20')
+                year = ifile[i0+1:i0+5]
+                try:
+                    month = ddict[ifile[:4].upper()]
+                except:
+                    month = ddict[ifile[:3].upper()]
+                    day = ifile[3:i0]
+                else:
+                    day = ifile[4:i0]
+                dates.append('{:s}-{:d}-{:s}'.format(year,month,day))
+                # Frame
+                i1 = ifile.find('_rotat')
+                i1b = ifile.find('_verti')
+                if i1b>0:
+                    i1 = i1b
+                frames.append(ifile[i0+6:i1])
+
+    # Build the table
+    tbl = Table()
+    print("We have {:d} Traning images [WARNING: SOME ARE FOR TESTS!]".format(ntrain))
+    tbl['Type'] = types
+    tbl['Date'] = dates
+    tbl['Frame'] = frames
+    tbl['PI'] = pis
+    # Sort
+    tbl.sort(['Type', 'Date', 'Frame'])
+    # Time
+    t = Time(tbl['Date'], out_subfmt='date')
+ 
+    # Make the LateX Table
     # Open
     tbfil = open(outfil, 'w')
 
-    # Header
-    #tbfil.write('\\clearpage\n')
-    tbfil.write('\\begin{table*}\n')
-    tbfil.write('\\centering\n')
-    tbfil.write('\\begin{minipage}{170mm} \n')
-    tbfil.write('\\caption{SDSS DR7 DLA CANDIDATES$^a$\\label{tab:dr7}}\n')
-    tbfil.write('\\begin{tabular}{lcccccccc}\n')
-    tbfil.write('\\hline \n')
-    #tbfil.write('\\rotate\n')
-    #tbfil.write('\\tablewidth{0pc}\n')
-    #tbfil.write('\\tabletypesize{\\small}\n')
-    tbfil.write('RA & DEC & Plate & Fiber & \\zabs & \\nhi & Conf. & BAL$^b$ \n')
-    tbfil.write('& Previous?$^c$')
-    tbfil.write('\\\\ \n')
-    #tbfil.write('& & & (\AA) & (10$^{-15}$) & & (10$^{-17}$) &  ')
-    #tbfil.write('} \n')
-    tbfil.write('\\hline \n')
+    # tbfil.write('\\clearpage\n')
+    tbfil.write('\\begin{deluxetable}{lccccc}\n')
+    # tbfil.write('\\rotate\n')
+    tbfil.write('\\tablewidth{0pc}\n')
+    tbfil.write('\\tablecaption{Training Set\\label{tab:train}}\n')
+    tbfil.write('\\tabletypesize{\\small}\n')
+    tbfil.write('\\tablehead{\\colhead{Type} & \\colhead{Date} \n')
+    tbfil.write('& \\colhead{Frame} & \\colhead{PI} \n')
+    tbfil.write('& \\colhead{Test} \n')
+    tbfil.write('} \n')
 
-    #tbfil.write('\\startdata \n')
+    tbfil.write('\\startdata \n')
 
-    bals, N09 = [], []
-    cnt = 0
-    for ii,dla in enumerate(ml_dlasurvey._abs_sys):
-        if dla.zabs > dla.zem: # RESTRICTING
-            N09.append(0)  # Make believe, but that is ok
-            bals.append(0)
-            continue
-        if sub and (cnt > 5):
+    for ii,row in enumerate(tbl):
+        if (ii > 15) & sub:
             break
-        else:
-            cnt += 1
 
-        # Match to shen
-        mt_shen = np.where( (shen['PLATE'] == dla.plate) & (shen['FIBER'] == dla.fiber))[0]
-        if len(mt_shen) != 1:
-            pdb.set_trace()
-        # Generate line
-        dlac = '{:0.4f} & {:0.4f} & {:d} & {:d} & {:0.3f} & {:0.2f} & {:0.2f} & {:d}'.format(
-            ra[ii], dec[ii],
-            dla.plate, dla.fiber, dla.zabs, dla.NHI, dla.confidence, shen['BAL_FLAG'][mt_shen[0]])
-        bals.append(shen['BAL_FLAG'][mt_shen[0]])
-        # In previous survey?
-        flg_prev = 0
-        if ml_in_pn[ii]:
-            flg_prev += 1
-            N09.append(1)
-        else:
-            N09.append(0)
-        if in_dr5[ii]:
-            flg_prev += 2
-        dlac += '& {:d}'.format(flg_prev)
+        # Line
+        iline = '{:s} & {:s} & {:s} & {:s}'.format(row['Type'], t[ii].value,
+                                           row['Frame'], row['PI']) 
+
         # End line
-        tbfil.write(dlac)
+        tbfil.write(iline)
         tbfil.write('\\\\ \n')
 
     # End Table
-    tbfil.write('\\hline \n')
-    tbfil.write('\\end{tabular} \n')
-    tbfil.write('\\end{minipage} \n')
-    tbfil.write('{$^a$}Restricted to systems with $\mzabs < \mzem$.\\\\ \n')
-    tbfil.write('{$^b$}Quasar is reported to exhibit BAL features by \cite{shen11} (1=True).  We caution that additional BAL features exist in the purported non-BAL quasars.\\\\ \n')
-    tbfil.write('{$^c$}DLA is new (0) or is also reported by N09 (1), PW09 (2), or both (3).\\\\ \n')
-    tbfil.write('\\end{table*} \n')
+    # End
+    tbfil.write('\\enddata \n')
+    #tbfil.write('\\tablenotetext{a}{Star/galaxy classifier from SExtractor with S/G=1 a star-like object.  Ignored for $\\theta < \\theta_{\\rm min}$.}\n')
+    # tbfil.write('\\tablecomments{Units for $C_0$ and $C_1$ are erg/s/cm$^2$/\\AA\ and erg/s/cm$^2$/\\AA$^2$ respecitvely.}\n')
+    # End
+    tbfil.write('\\end{deluxetable} \n')
+    #tbfil.write('\\hline \n')
+    #tbfil.write('\\end{tabular} \n')
+    #tbfil.write('\\end{minipage} \n')
+    #tbfil.write('{$^a$}Restricted to systems with $\mzabs < \mzem$.\\\\ \n')
+    #tbfil.write('{$^b$}Quasar is reported to exhibit BAL features by \cite{shen11} (1=True).  We caution that additional BAL features exist in the purported non-BAL quasars.\\\\ \n')
+    #tbfil.write('{$^c$}DLA is new (0) or is also reported by N09 (1), PW09 (2), or both (3).\\\\ \n')
+    #tbfil.write('\\end{table*} \n')
 
     #tbfil.write('\\enddata \n')
     #tbfil.write('\\tablenotetext{a}{Flag describing the continuum method applied: 0=Analysis based only on Lyman series lines; 1=Linear fit; 2=Constant fit; 3=Continuum imposed by hand.}\n')
@@ -264,21 +304,15 @@ def main(flg_tab):
 
     # DR7 Table
     if flg_tab & (2**0):
-        mktab_dr7(outfil='tab_dr7_dlas_sub.tex', sub=True)
-        #mktab_dr7()  # This one does the stats for the paper
-
-    # DR12 Table
-    if flg_tab & (2**1):
-        mktab_dr12(outfil='tab_dr12_dlas_sub.tex', sub=True)
-        #mktab_dr12()
+        mktab_training(sub=True)# outfil='tab_dr7_dlas_sub.tex', sub=True)
 
 # Command line execution
 if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         flg_tab = 0
-        #flg_tab += 2**0   # DR7
-        flg_tab += 2**1   # DR12
+        flg_tab += 2**0   # Image table
+        #flg_tab += 2**1   # DR12
     else:
         flg_tab = sys.argv[1]
 
