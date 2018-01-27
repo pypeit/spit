@@ -30,7 +30,7 @@ setup_keywords = dict()
 # THESE SETTINGS NEED TO BE CHANGED FOR EVERY PRODUCT.
 #
 setup_keywords['name'] = 'spit'
-setup_keywords['description'] = 'SPectra Image Typing'
+setup_keywords['description'] = 'SPectral Image Typing'
 setup_keywords['author'] = 'PYPIT Collaboration'
 setup_keywords['author_email'] = 'pypit@ucolick.org'
 setup_keywords['license'] = 'BSD'
