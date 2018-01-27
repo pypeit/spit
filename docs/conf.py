@@ -19,7 +19,7 @@ import shlex
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../specdb'))
+sys.path.insert(0, os.path.abspath('../spit'))
 
 # -- General configuration ------------------------------------------------
 
@@ -67,8 +67,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'specdb'
-copyright = u'2016, Prochaska, and Associates'
+project = u'spit'
+copyright = u'2018, PYPIT team'
 author = u'Prochaska, and Associates'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -224,7 +224,7 @@ html_sidebars = {
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'specdb'
+htmlhelp_basename = 'spit'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -246,7 +246,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'specdb.tex', u'specdb Documentation',
+  (master_doc, 'spit.tex', u'spit Documentation',
    u'Prochaska, and Associates', 'manual'),
 ]
 
@@ -276,7 +276,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'specdb', u'specdb Documentation',
+    (master_doc, 'spit', u'spit Documentation',
      [author], 1)
 ]
 
@@ -290,8 +290,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'specdb', u'specdb Documentation',
-   author, 'specdb', 'One line description of project.',
+  (master_doc, 'spit', u'spit Documentation',
+   author, 'spit', 'One line description of project.',
    'Miscellaneous'),
 ]
 

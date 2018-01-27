@@ -23,7 +23,7 @@ env:
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - CONDA_DEPENDENCIES='scipy pyyaml'
+        - CONDA_DEPENDENCIES='numpy scipy pyyaml'
         - PIP_DEPENDENCIES='tensorflow prettytensor'
         - EVENT_TYPE='pull_request push'
         - TASK='test'

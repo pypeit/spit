@@ -9,7 +9,7 @@ import warnings
 
 import pytest
 
-from auto_type.image_loader import load_images_arr
+from spit.image_loader import load_images_arr
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')

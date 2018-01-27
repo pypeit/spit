@@ -9,7 +9,7 @@ import warnings
 
 import pytest
 
-from auto_type.classify import classify_me
+from spit.classify import classify_me
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')

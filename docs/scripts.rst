@@ -35,12 +35,15 @@ Here is a call you can try::
 
 And here is the output from that call::
 
-    2018-01-27 08:51:02.225800: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
     =======================================================
     You input the image: r6.fits
        SPIT classified it as a type:  ARC
 
-If you wish to suppress the warning message from tensorflow, do::
+On CPU architectures, you are likely to see this warning message from tensorflow::
+
+    2018-01-27 08:51:02.225800: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+
+You can suppress it by setting the following::
 
     export TF_CPP_MIN_LOG_LEVEL=2
 
