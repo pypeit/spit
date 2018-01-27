@@ -9,6 +9,8 @@ from scipy import misc
 import tensorflow as tf
 import pdb
 
+from auto_type import zscale as aut_z
+
 ########################################################################
 # Various constants for the size of the images.
 # Use these constants in your own program.
@@ -443,7 +445,7 @@ def cutoff_back(max_vals, cutoff_percent=1.15):
     return cutoff_point
 
 
-def trim_image(image, **kwargs):
+def trim_image(image, ret_all=False, **kwargs):
     """ Trim down the image to the flux only region
     Handles overscan and vignetted regions
     """
@@ -468,7 +470,10 @@ def trim_image(image, **kwargs):
     second = shape[0] - cutoff_b
 
     # Trim and return
-    return image[first:second, :]
+    if ret_all:
+        return image[first:second, :], (max_vals, cutoff_f, cutoff_b)
+    else:
+        return image[first:second, :]
 
 
 def cutoff_forw(max_vals, cutoff_percent=1.10):
@@ -527,9 +532,8 @@ def zscale(image, chk=False, contrast=0.25, only_range=False):
     if only_range is True, return z1,z2
 
     """
-    from ginga.util import zscale
     # Find scale range
-    z1,z2 = zscale.zscale(image, contrast=contrast)
+    z1,z2 = aut_z.zscale(image, contrast=contrast)
     if only_range:
         return z1, z2
     # Max, min

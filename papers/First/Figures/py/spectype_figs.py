@@ -142,6 +142,51 @@ def fig_zscale(field=None, outfil=None):
     print("Wrote: {:s}".format(outfil))
 
 
+def fig_find_trimsec(outfile=None):
+    """ DEIMOS completeness figure
+        Using the MAG_MAX in the YAML files
+    """
+    if outfile is None:
+        outfile = 'fig_find_trimsec.pdf'
+
+    # Load image
+    arc_file = resource_filename('auto_type', 'tests/files/r6.fits')
+    hdulist = fits.open(arc_file)
+    img = hdulist[0].data
+
+    #
+    timg, stuff = autyp_p.trim_image(img, ret_all=True)
+    max_vals, cutoff_f, cutoff_b = stuff
+
+
+    # Plot
+    plt.figure(figsize=(5, 4))
+    plt.clf()
+    gs = gridspec.GridSpec(1,1)
+    ax = plt.subplot(gs[0])
+
+    ax.plot(max_vals, 'k', drawstyle='steps-mid')
+    # Lines
+    ax.axvline(cutoff_f, color='b', ls='dashed')
+    ax.axvline(len(max_vals)-cutoff_b, color='b', ls='dashed')
+
+
+    # Labels
+    ax.set_xlabel('Row')
+    ax.set_ylabel('Maximum Value')
+    #ax.set_xlim(17., 24.)
+    #ax.set_ylim(0., 1.05)
+
+    set_fontsize(ax, 13.)
+    # Legend
+    #legend = plt.legend(loc='upper right', scatterpoints=1, borderpad=0.2,
+    #                    handletextpad=0.1, fontsize='large')
+
+    plt.tight_layout(pad=0.2,h_pad=0.3,w_pad=0.0)
+    plt.savefig(outfile, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfile))
+
 def fig_trim(field=None, outfil=None):
     """ Compare two views of the same image.
     With and without ZSCALE
@@ -230,6 +275,7 @@ def main(flg_fig):
 
     # Trim
     if flg_fig & (2**2):
+        fig_find_trimsec()#'fig_find_trimsec.png')
         fig_trim()
 
 # Command line execution
