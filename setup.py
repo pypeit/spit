@@ -30,12 +30,12 @@ setup_keywords = dict()
 #
 # THESE SETTINGS NEED TO BE CHANGED FOR EVERY PRODUCT.
 #
-setup_keywords['name'] = 'auto_type'
-setup_keywords['description'] = 'Automagical Typing CNN Algorithm'
+setup_keywords['name'] = 'spit'
+setup_keywords['description'] = 'SPectra Image Typing'
 setup_keywords['author'] = 'PYPIT Collaboration'
 setup_keywords['author_email'] = 'pypit@ucolick.org'
 setup_keywords['license'] = 'BSD'
-setup_keywords['url'] = 'https://github.com/pypit/auto_type'
+setup_keywords['url'] = 'https://github.com/PYPIT/spit'
 #
 # END OF SETTINGS THAT NEED TO BE CHANGED.
 #
@@ -61,7 +61,7 @@ setup_keywords['requires'] = ['Python (>2.7.0)']
 # setup_keywords['install_requires'] = ['Python (>2.7.0)']
 setup_keywords['zip_safe'] = False
 #setup_keywords['use_2to3'] = False
-setup_keywords['packages'] = ['auto_type'] #find_packages('pypit')
+setup_keywords['packages'] = ['spit'] #find_packages('pypit')
 #setup_keywords['package_dir'] = {'':''}
 #setup_keywords['cmdclass'] = {'version': DesiVersion, 'test': DesiTest, 'sdist': DistutilsSdist}
 #setup_keywords['test_suite']='{name}.tests.{name}_test_suite.{name}_test_suite'.format(**setup_keywords)
@@ -73,30 +73,6 @@ import numpy, os
 #from Cython.Distutils import build_ext
 #from Cython.Build import cythonize
 from distutils.extension import Extension
-
-'''
-include_gsl_dir = os.getenv('GSL_PATH')+'/include/'
-lib_gsl_dir = os.getenv('GSL_PATH')+'/lib/'
-pyx_files = glob.glob('auto_type/holy/*.pyx')
-setup_keywords['ext_modules']=[]
-for pyx_file in pyx_files:
-    pyx_split = pyx_file.split('.')
-    pyx_split2 = pyx_split[0].split('/')
-    # Generate Extension
-    #ext = Extension(pyx_split2[1], [pyx_file],
-    ext = Extension('auto_type.holy.'+pyx_split2[1], [pyx_file],
-        include_dirs=[numpy.get_include(),
-                    include_gsl_dir],
-        library_dirs=[lib_gsl_dir],
-        libraries=["gsl","gslcblas"]
-    )
-    # Append
-    setup_keywords['ext_modules'].append(ext)
-#for pyx_file in pyx_files:
-#    pyx_split = pyx_file.split('/')
-#    ext = cythonize(pyx_split[1])
-#    setup_keywords['ext_modules'].append(ext)
-'''
 
 #setup_keywords['cmdclass']={'build_ext': build_ext}
 
@@ -112,7 +88,7 @@ for pyx_file in pyx_files:
 data_files = []
 
 # walk through the data directory, adding all files
-data_generator = os.walk('auto_type/data')
+data_generator = os.walk('spit/data')
 for path, directories, files in data_generator:
     for f in files:
         data_path = '/'.join(path.split('/')[1:])
@@ -121,7 +97,7 @@ for path, directories, files in data_generator:
 #settings = glob.glob('auto_type/settings/settings.*')
 #settings = ['/'.join(path.split('/')[1:]) for path in settings]
 #data_files.extend(settings)
-setup_keywords['package_data'] = {'auto_type': data_files,
+setup_keywords['package_data'] = {'spit': data_files,
                                   '': ['*.rst', '*.txt']}
 setup_keywords['include_package_data'] = True
 

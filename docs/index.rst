@@ -1,15 +1,14 @@
-.. specdb documentation master file, created by
-   sphinx-quickstart on Fri Nov 13 13:39:35 2015.
+.. spit documentation master file, created by
+   sphinx-quickstart on Jan 27 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the specdb documentation!
-====================================
+Welcome to the spit documentation!
+==================================
 
 
-specdb is a software package for generating
-and interfacing with databases
-of spectra from astronomical sources.
+spit is a software package for classifying
+spectral images
 
 
 Getting Started
@@ -20,53 +19,13 @@ Getting Started
 
    installing
 
-Using specdb with a Database
-----------------------------
+Using SPIT
+----------
 
 .. toctree::
    :maxdepth: 2
 
    scripts
-   usage
-
-Accessing Data
---------------
-
-.. toctree::
-   :maxdepth: 2
-
-   catalog
-   query_dict
-   groups
-   meta
-   spectra
-   sdss
-
-specdb Databases
-----------------
-
-.. toctree::
-   :maxdepth: 2
-
-   igmspec
-   uvqs
-
-IVOA
-----
-
-.. toctree::
-   :maxdepth: 2
-
-   ssa
-
-Generating a Database
----------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   private
-
 
 Indices and tables
 ------------------
