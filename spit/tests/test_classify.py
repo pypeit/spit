@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # TEST_UNICODE_LITERALS
 
-import numpy as np
+from pkg_resources import resource_filename
 import os
 import warnings
 
@@ -17,9 +17,11 @@ def data_path(filename):
 
 
 def test_classify_arc():
-    # Tests from_dict too
-    answer = classify_me(data_path('r6.fits'))
-    assert answer == 'ARC'
+    save_dir = resource_filename('spit', '/data/checkpoints/kast_original/')
+    if os.path.isdir(save_dir):
+        # Tests from_dict too
+        answer = classify_me(data_path('r6.fits'))
+        assert answer == 'ARC'
     # Failure
     with pytest.raises(IOError):
         answer = classify_me(data_path('r6.fits'), save_dir='this_better_fail')
