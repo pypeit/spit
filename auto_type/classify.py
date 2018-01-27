@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np, os, sys
-import image_loader as il
+
+from auto_type import image_loader as il
+from auto_type.main import predict_cls_test, cls_accuracy
 from collections import Counter
 
 # Use PrettyTensor to simplify Neural Network construction.
