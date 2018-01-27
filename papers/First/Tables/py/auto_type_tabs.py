@@ -53,8 +53,9 @@ def mktab_training(outfil='tab_training.tex', sub=False):
         nimg = len(all_images[key])
         print("We have {:d} images of Type={:s}".format(nimg, key))
         ntrain += nimg
-        # Type
-        types += [key]*nimg
+        # Type (Capitalize the first letter)
+        ckey = key[0].upper() + key[1:]
+        types += [ckey]*nimg
         # Loop me
         for ipath in all_images[key]:
             # Parse
@@ -111,7 +112,7 @@ def mktab_training(outfil='tab_training.tex', sub=False):
     tbfil.write('\\tablewidth{0pc}\n')
     tbfil.write('\\tablecaption{Training Set\\label{tab:train}}\n')
     tbfil.write('\\tabletypesize{\\small}\n')
-    tbfil.write('\\tablehead{\\colhead{Type} & \\colhead{Date} \n')
+    tbfil.write('\\tablehead{\\colhead{Type?} & \\colhead{Date} \n')
     tbfil.write('& \\colhead{Frame} & \\colhead{PI} \n')
     tbfil.write('& \\colhead{Test} \n')
     tbfil.write('} \n')
