@@ -1,12 +1,10 @@
 """ Main methods for SPIT"""
 from __future__ import (print_function, absolute_import, division, unicode_literals)
 
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
-from sklearn.metrics import confusion_matrix
 from datetime import timedelta
-import math, os, sys, time
+import os, sys, time
 
 # Use PrettyTensor to simplify Neural Network construction.
 import prettytensor as pt

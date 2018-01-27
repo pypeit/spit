@@ -1,8 +1,8 @@
 import tensorflow as tf
 import numpy as np, os, sys
 
-from auto_type import image_loader as il
-from auto_type.main import predict_cls_test, cls_accuracy
+from spit import image_loader as il
+from spit.main import predict_cls_test, cls_accuracy
 from collections import Counter
 
 # Use PrettyTensor to simplify Neural Network construction.
@@ -97,7 +97,7 @@ def classify_me(image_file, save_dir=None, verbose=False):
 
     if save_dir is None:
         from pkg_resources import resource_filename
-        save_dir = resource_filename('auto_type', '/data/checkpoints/kast_original/')
+        save_dir = resource_filename('spit', '/data/checkpoints/kast_original/')
 
     # Check
     if not os.path.isdir(save_dir):

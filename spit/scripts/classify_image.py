@@ -14,7 +14,7 @@ except NameError:
 def parser(options=None):
     import argparse
     # Parse
-    parser = argparse.ArgumentParser(description='Run SPIT on an image')
+    parser = argparse.ArgumentParser(description='Run SPIT on an image [v1]')
     parser.add_argument("image_file", type=str, help="Image to classify (e.g. r6.fits)")
     #parser.add_argument("--zmax", type=float, help="Maximum redshift for analysis")
 
@@ -31,10 +31,11 @@ def main(pargs):
     import numpy as np
     import warnings
 
-    from auto_type.classify import classify_me
+    from spit.classify import classify_me
 
     # Do it
     answer = classify_me(pargs.image_file)
 
+    print("=======================================================")
     print("You input the image: {:s}".format(pargs.image_file))
     print("   SPIT classified it as a type:  {:s}".format(answer))

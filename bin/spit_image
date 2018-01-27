@@ -9,7 +9,7 @@
 This script classifies an input image
 """
 
-import auto_type.scripts.classify_image as classify_image
+import spit.scripts.classify_image as classify_image
 
 if __name__ == '__main__':
     args = classify_image.parser()

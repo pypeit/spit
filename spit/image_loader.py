@@ -8,9 +8,9 @@ from enum import Enum
 
 import pdb
 
-from auto_type.preprocess import trim_image
-from auto_type.preprocess import zscale
-from auto_type.utils import congrid
+from spit.preprocess import trim_image
+from spit.preprocess import zscale
+from spit.utils import congrid
 
 sys.dont_write_bytecode = True
 

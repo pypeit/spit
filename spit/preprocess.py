@@ -9,7 +9,7 @@ from scipy import misc
 import tensorflow as tf
 import pdb
 
-from auto_type import zscale as aut_z
+from spit import zscale as aut_z
 
 ########################################################################
 # Various constants for the size of the images.
