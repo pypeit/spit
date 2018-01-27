@@ -1,9 +1,12 @@
+""" Main methods for SPIT"""
+from __future__ import (print_function, absolute_import, division, unicode_literals)
+
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from datetime import timedelta
-import math, os, sys, time, preprocess
+import math, os, sys, time
 
 # Use PrettyTensor to simplify Neural Network construction.
 import prettytensor as pt
@@ -174,7 +177,7 @@ def optimize(num_iterations):
         # Calculate the accuracy on the validation-set.
         # The function returns 2 values but we only need the first.
         #acc_validation, _ = validation_accuracy()
-    	acc_test, _ =test_accuracy()
+        acc_test, _ =test_accuracy()
 
         # If validation accuracy is an improvement over best-known.
         if acc_test > best_test_accuracy:
@@ -225,185 +228,187 @@ def print_versions():
     print("Prety Tensor: " + pt.__version__)
     print("Python: " + sys.version)
 
-print_versions()
+def run():
+    from auto_type import preprocess
+    print_versions()
 
-# Load the dataset
-images_train, cls_train, labels_train, filenames_train = preprocess.load_linear_pngs(data_type="train_data")
-images_test, cls_test, labels_test, filenames_test = preprocess.load_linear_pngs(data_type="test_data")
+    # Load the dataset
+    images_train, cls_train, labels_train, filenames_train = preprocess.load_linear_pngs(data_type="train_data")
+    images_test, cls_test, labels_test, filenames_test = preprocess.load_linear_pngs(data_type="test_data")
 
-# Dataset sizes
-print("Size of:")
-print("- Training-set:\t\t{}".format(len(images_train)))
-#print("- Validation-set:\t{}".format(len(images_val)))
-print("- Test-set:\t\t{}".format(len(images_test)))
-
-
-########################################################################
-# Various constants for the size of the images.
-
-# The height of an image
-image_height = preprocess.image_height
-
-# The width of an image
-image_width = preprocess.image_width
-
-# Length of an image when flattened to a 1-dim array.
-img_size_flat = image_height * image_width
-
-# Tuple with height and width of images used to reshape arrays.
-img_shape = (image_height, image_width)
-
-# Number of channels in each image, 3 channels: Red, Green, Blue.
-num_channels = preprocess.num_channels
-
-# Number of classes.
-num_classes = preprocess.num_classes
-
-# The padding value for the padded image
-pad_const = preprocess.pad_const
-########################################################################
-
-# Start building the TensorFlow model
-# Placeholder Variables
-x = tf.placeholder(tf.float32, shape=[None, img_size_flat], name='x')
-x_image = tf.reshape(x, [-1, image_height, image_width, num_channels])
-y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
-y_true_cls = tf.argmax(y_true, axis=1)
-
-# Neural Network
-x_pretty = pt.wrap(x_image)
-
-# Basic CNN architecture
-"""
-with pt.defaults_scope(activation_fn=tf.nn.relu):
-    y_pred, loss = x_pretty.\
-        conv2d(kernel=5, depth=16, name='layer_conv1').\
-        max_pool(kernel=2, stride=2).\
-        conv2d(kernel=5, depth=36, name='layer_conv2').\
-        max_pool(kernel=2, stride=2).\
-        flatten().\
-        fully_connected(size=128, name='layer_fc1').\
-        softmax_classifier(num_classes=num_classes, labels=y_true)
-"""
-
-with pt.defaults_scope(activation_fn=tf.nn.relu):
-    y_pred, loss = x_pretty.\
-        conv2d(kernel=5, depth=36, name='layer_conv1').\
-        max_pool(kernel=2, stride=2).\
-        conv2d(kernel=5, depth=64, name='layer_conv2').\
-        max_pool(kernel=2, stride=2).\
-        flatten().\
-        fully_connected(size=128, name='layer_fc1').\
-        softmax_classifier(num_classes=num_classes, labels=y_true)
-
-"""
-with pt.defaults_scope(activation_fn=tf.nn.relu):
-    y_pred, loss = x_pretty.\
-        conv2d(kernel=5, depth=36, name='layer_conv1').\
-        conv2d(kernel=5, depth=64, name='layer_conv2').\
-        conv2d(kernel=5, depth=72, name='layer_conv2').\
-        conv2d(kernel=5, depth=102, name='layer_conv2').\
-        max_pool(kernel=2, stride=2).\
-        flatten().\
-        fully_connected(size=256, name='layer_fc1').\
-        fully_connected(size=128, name='layer_fc1').\
-        softmax_classifier(num_classes=num_classes, labels=y_true)
-"""
-
-"""
-with pt.defaults_scope(activation_fn=tf.nn.relu):
-    y_pred, loss = x_pretty.\
-        conv2d(kernel=5, depth=64, name='layer_conv1').\
-        max_pool(kernel=2, stride=2).\
-        conv2d(kernel=5, depth=64, name='layer_conv2').\
-        max_pool(kernel=2, stride=2).\
-        flatten().\
-        fully_connected(size=256, name='layer_fc1').\
-        fully_connected(size=128, name='layer_fc2').\
-        softmax_classifier(num_classes=num_classes, labels=y_true)
-"""
-
-# Optimize Method
-optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-
-# Performance Measures
-y_pred_cls = tf.argmax(y_pred, axis=1)
-correct_prediction = tf.equal(y_pred_cls, y_true_cls)
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-# Saver Method to save the best performing NN
-saver = tf.train.Saver()
-save_dir = 'checkpoints/'
-if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
-
-save_validation_path = os.path.join(save_dir, 'best_validation')
-save_done_path = os.path.join(save_dir, 'done_training')
-
-# The image batches that will be used in training sets
-train_batch_size = 10
-
-# Split the data-set in batches of this size to limit RAM usage.
-batch_size = 10
-
-# Best validation accuracy seen so far.
-best_test_accuracy = 0.0
-
-# Iteration-number for last improvement to validation accuracy.
-last_improvement = 0
-
-# Stop optimization if no improvement found in this many iterations.
-require_improvement = 10000
-
-# Counter for total number of iterations performed so far.
-total_iterations = 0
-
-# TensorFlow run
-session = tf.Session()
-
-def init_variables():
-    session.run(tf.global_variables_initializer())
-
-init_variables()
-
-# Print test accuracy with no optimization
-print_test_accuracy()
-
-# Perform the optimization
-optimize(num_iterations=10000)
-
-# Print the test accuracy after 100 optimizations
-print("Accuracies after 1000 iterations!")
-print_test_accuracy()
-
-# Save the mode lafter it's done training
-saver.save(sess=session, save_path=save_done_path)
-
-# Perform the optimization
-#optimize(num_iterations=9000)
-
-# Print the test accuracy after 100 optimizations
-#print("Accuracies after 10000 iterations!")
-#print_test_accuracy()
-
-# Initialize Variables Again
-print("Clearing Variables")
-init_variables()
-print_test_accuracy()
-
-# Restore best Varibles
-saver.restore(sess=session, save_path=save_validation_path)
-
-print("Print Validation case accuracies!")
-print_test_accuracy()
-init_variables()
-print(test_accuracy())
-
-# Restore best Varibles
-saver.restore(sess=session, save_path=save_done_path)
-
-print("Print Validation case accuracies!")
-print_test_accuracy()
+    # Dataset sizes
+    print("Size of:")
+    print("- Training-set:\t\t{}".format(len(images_train)))
+    #print("- Validation-set:\t{}".format(len(images_val)))
+    print("- Test-set:\t\t{}".format(len(images_test)))
 
 
-session.close()
+    ########################################################################
+    # Various constants for the size of the images.
+
+    # The height of an image
+    image_height = preprocess.image_height
+
+    # The width of an image
+    image_width = preprocess.image_width
+
+    # Length of an image when flattened to a 1-dim array.
+    img_size_flat = image_height * image_width
+
+    # Tuple with height and width of images used to reshape arrays.
+    img_shape = (image_height, image_width)
+
+    # Number of channels in each image, 3 channels: Red, Green, Blue.
+    num_channels = preprocess.num_channels
+
+    # Number of classes.
+    num_classes = preprocess.num_classes
+
+    # The padding value for the padded image
+    pad_const = preprocess.pad_const
+    ########################################################################
+
+    # Start building the TensorFlow model
+    # Placeholder Variables
+    x = tf.placeholder(tf.float32, shape=[None, img_size_flat], name='x')
+    x_image = tf.reshape(x, [-1, image_height, image_width, num_channels])
+    y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
+    y_true_cls = tf.argmax(y_true, axis=1)
+
+    # Neural Network
+    x_pretty = pt.wrap(x_image)
+
+    # Basic CNN architecture
+    """
+    with pt.defaults_scope(activation_fn=tf.nn.relu):
+        y_pred, loss = x_pretty.\
+            conv2d(kernel=5, depth=16, name='layer_conv1').\
+            max_pool(kernel=2, stride=2).\
+            conv2d(kernel=5, depth=36, name='layer_conv2').\
+            max_pool(kernel=2, stride=2).\
+            flatten().\
+            fully_connected(size=128, name='layer_fc1').\
+            softmax_classifier(num_classes=num_classes, labels=y_true)
+    """
+
+    with pt.defaults_scope(activation_fn=tf.nn.relu):
+        y_pred, loss = x_pretty.\
+            conv2d(kernel=5, depth=36, name='layer_conv1').\
+            max_pool(kernel=2, stride=2).\
+            conv2d(kernel=5, depth=64, name='layer_conv2').\
+            max_pool(kernel=2, stride=2).\
+            flatten().\
+            fully_connected(size=128, name='layer_fc1').\
+            softmax_classifier(num_classes=num_classes, labels=y_true)
+
+    """
+    with pt.defaults_scope(activation_fn=tf.nn.relu):
+        y_pred, loss = x_pretty.\
+            conv2d(kernel=5, depth=36, name='layer_conv1').\
+            conv2d(kernel=5, depth=64, name='layer_conv2').\
+            conv2d(kernel=5, depth=72, name='layer_conv2').\
+            conv2d(kernel=5, depth=102, name='layer_conv2').\
+            max_pool(kernel=2, stride=2).\
+            flatten().\
+            fully_connected(size=256, name='layer_fc1').\
+            fully_connected(size=128, name='layer_fc1').\
+            softmax_classifier(num_classes=num_classes, labels=y_true)
+    """
+
+    """
+    with pt.defaults_scope(activation_fn=tf.nn.relu):
+        y_pred, loss = x_pretty.\
+            conv2d(kernel=5, depth=64, name='layer_conv1').\
+            max_pool(kernel=2, stride=2).\
+            conv2d(kernel=5, depth=64, name='layer_conv2').\
+            max_pool(kernel=2, stride=2).\
+            flatten().\
+            fully_connected(size=256, name='layer_fc1').\
+            fully_connected(size=128, name='layer_fc2').\
+            softmax_classifier(num_classes=num_classes, labels=y_true)
+    """
+
+    # Optimize Method
+    optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
+
+    # Performance Measures
+    y_pred_cls = tf.argmax(y_pred, axis=1)
+    correct_prediction = tf.equal(y_pred_cls, y_true_cls)
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    # Saver Method to save the best performing NN
+    saver = tf.train.Saver()
+    save_dir = 'checkpoints/'
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    save_validation_path = os.path.join(save_dir, 'best_validation')
+    save_done_path = os.path.join(save_dir, 'done_training')
+
+    # The image batches that will be used in training sets
+    train_batch_size = 10
+
+    # Split the data-set in batches of this size to limit RAM usage.
+    batch_size = 10
+
+    # Best validation accuracy seen so far.
+    best_test_accuracy = 0.0
+
+    # Iteration-number for last improvement to validation accuracy.
+    last_improvement = 0
+
+    # Stop optimization if no improvement found in this many iterations.
+    require_improvement = 10000
+
+    # Counter for total number of iterations performed so far.
+    total_iterations = 0
+
+    # TensorFlow run
+    session = tf.Session()
+
+    def init_variables():
+        session.run(tf.global_variables_initializer())
+
+    init_variables()
+
+    # Print test accuracy with no optimization
+    print_test_accuracy()
+
+    # Perform the optimization
+    optimize(num_iterations=10000)
+
+    # Print the test accuracy after 100 optimizations
+    print("Accuracies after 1000 iterations!")
+    print_test_accuracy()
+
+    # Save the mode lafter it's done training
+    saver.save(sess=session, save_path=save_done_path)
+
+    # Perform the optimization
+    #optimize(num_iterations=9000)
+
+    # Print the test accuracy after 100 optimizations
+    #print("Accuracies after 10000 iterations!")
+    #print_test_accuracy()
+
+    # Initialize Variables Again
+    print("Clearing Variables")
+    init_variables()
+    print_test_accuracy()
+
+    # Restore best Varibles
+    saver.restore(sess=session, save_path=save_validation_path)
+
+    print("Print Validation case accuracies!")
+    print_test_accuracy()
+    init_variables()
+    print(test_accuracy())
+
+    # Restore best Varibles
+    saver.restore(sess=session, save_path=save_done_path)
+
+    print("Print Validation case accuracies!")
+    print_test_accuracy()
+
+
+    session.close()

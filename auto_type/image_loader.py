@@ -1,13 +1,10 @@
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 # Requirements:
-import numpy as np, glob, os, sys, scipy
+import numpy as np, glob, os, sys
 from astropy.io import fits
-from astropy.stats import sigma_clip
-from ginga.web.pgw import ipg
 from PIL import Image
 from enum import Enum
-from scipy import misc
 
 import pdb
 
@@ -124,7 +121,6 @@ def load_images_arr(image_file, outfile=None):
 
     # Resize
     rimage = congrid(image.astype(float), (image_height, image_width))
-    pdb.set_trace()
 
     # zscale
     zimage = zscale(rimage)
