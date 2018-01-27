@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function
 #
 # Standard imports
 #
-import sys
 import glob, os
 import pdb
 #from distutils.extension import Extension
@@ -68,14 +67,7 @@ setup_keywords['packages'] = ['spit'] #find_packages('pypit')
 setup_keywords['setup_requires']=['pytest-runner']
 setup_keywords['tests_require']=['pytest']
 
-# Cython
-import numpy, os
-#from Cython.Distutils import build_ext
-#from Cython.Build import cythonize
-from distutils.extension import Extension
-
 #setup_keywords['cmdclass']={'build_ext': build_ext}
-
 
 # Autogenerate command-line scripts.
 #
