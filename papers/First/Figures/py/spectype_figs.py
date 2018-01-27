@@ -17,7 +17,7 @@ import matplotlib.gridspec as gridspec
 
 from astropy.io import fits
 
-from auto_type import preprocess as autyp_p
+from spit import preprocess as spit_p
 
 
 # Local
@@ -71,7 +71,7 @@ def fig_images(field=None, outfil=None):
         img = hdu[0].data
 
         # z-Scale
-        z1,z2 = autyp_p.zscale(img, only_range=True)
+        z1,z2 = spit_p.zscale(img, only_range=True)
         #pdb.set_trace()
 
 
@@ -125,7 +125,7 @@ def fig_zscale(field=None, outfil=None):
     # With zscale
     ax1 = plt.subplot(gs[1])
     # z-Scale
-    z1,z2 = autyp_p.zscale(img, only_range=True)
+    z1,z2 = spit_p.zscale(img, only_range=True)
 
     # Plot
     ax1.imshow(img, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
@@ -155,7 +155,7 @@ def fig_find_trimsec(outfile=None):
     img = hdulist[0].data
 
     #
-    timg, stuff = autyp_p.trim_image(img, ret_all=True)
+    timg, stuff = spit_p.trim_image(img, ret_all=True)
     max_vals, cutoff_f, cutoff_b = stuff
 
 
@@ -187,6 +187,7 @@ def fig_find_trimsec(outfile=None):
     plt.close()
     print("Wrote: {:s}".format(outfile))
 
+
 def fig_trim(field=None, outfil=None):
     """ Compare two views of the same image.
     With and without ZSCALE
@@ -211,7 +212,7 @@ def fig_trim(field=None, outfil=None):
     cm = plt.get_cmap('Greys')
 
     # Untrimmed
-    z1,z2 = autyp_p.zscale(img, only_range=True)
+    z1,z2 = spit_p.zscale(img, only_range=True)
 
     ax0 = plt.subplot(gs[0])
     # Plot
@@ -221,10 +222,10 @@ def fig_trim(field=None, outfil=None):
 
 
     # Trimmed
-    timg = autyp_p.trim_image(img)
+    timg = spit_p.trim_image(img)
     ax1 = plt.subplot(gs[1])
     # z-Scale
-    z1,z2 = autyp_p.zscale(timg, only_range=True)
+    z1,z2 = spit_p.zscale(timg, only_range=True)
 
     # Plot
     ax1.imshow(timg, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
@@ -239,6 +240,60 @@ def fig_trim(field=None, outfil=None):
     plt.savefig(outfil, dpi=700)
     plt.close()
     print("Wrote: {:s}".format(outfil))
+
+
+def fig_test_accuracy(field=None, outfil=None):
+    """ Test accuracy
+    """
+    from spit.main import print_test_accuracy
+    # Init
+    if outfil is None:
+        outfil = 'fig_test_accuracy.png'
+
+    # Run me
+    print_test_accuracy(show_confusion_matrix=True, show_example_errors=True)
+
+    '''
+    # Targets only
+    plt.figure(figsize=(12, 5))
+    plt.clf()
+    gs = gridspec.GridSpec(2,1)
+
+    #plt.suptitle('{:s}: MMT/Hectospec Targets'.format(field[0])
+    #    ,fontsize=19.)
+
+    cm = plt.get_cmap('Greys')
+
+    # Untrimmed
+    z1,z2 = spit_p.zscale(img, only_range=True)
+
+    ax0 = plt.subplot(gs[0])
+    # Plot
+    ax0.imshow(img, cmap=cm, vmin=z1, vmax=z2)
+    # Axes
+    ax0.axis('off')
+
+
+    # Trimmed
+    timg = spit_p.trim_image(img)
+    ax1 = plt.subplot(gs[1])
+    # z-Scale
+    z1,z2 = spit_p.zscale(timg, only_range=True)
+
+    # Plot
+    ax1.imshow(timg, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
+    # Axes
+    ax1.axis('off')
+
+    # Labels
+    #ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
+    #        size='large', ha='left', va='top')
+
+    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    plt.savefig(outfil, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfil))
+    '''
 
 
 def set_fontsize(ax,fsz):
@@ -278,6 +333,11 @@ def main(flg_fig):
         fig_find_trimsec()#'fig_find_trimsec.png')
         fig_trim()
 
+    # Test Accuracy
+    if flg_fig & (2**3):
+        fig_test_accuracy()
+
+
 # Command line execution
 if __name__ == '__main__':
 
@@ -285,7 +345,8 @@ if __name__ == '__main__':
         flg_fig = 0
         #flg_fig += 2**0   # Spectral images
         #flg_fig += 2**1   # zscale
-        flg_fig += 2**2   # trim
+        #flg_fig += 2**2   # trim
+        flg_fig += 2**3   # Test accuracy
     else:
         flg_fig = sys.argv[1]
 

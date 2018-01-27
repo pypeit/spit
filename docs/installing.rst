@@ -30,7 +30,7 @@ to install and/or update these packages.
 * `astropy <http://www.astropy.org/>`_ version 2.0 or later
 * `scipy <http://www.scipy.org/>`_ version 0.18 or later
 * `tensorflow`_ version 1.4.1 or later
-* `PIL`_ version 4.2 or later
+* `pillow`_ version 4.2 or later
 * `prettytensor`_ version 0.7.4 or later  [This dependency may be eventually eliminated]
 
 If you are using Anaconda, you can check the presence of these packages with::
