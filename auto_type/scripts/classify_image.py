@@ -37,4 +37,4 @@ def main(pargs):
     answer = classify_me(pargs.image_file)
 
     print("You input the image: {:s}".format(pargs.image_file))
-    print("   SPIT classified it as a type={:s}".format(answer))
+    print("   SPIT classified it as a type:  {:s}".format(answer))

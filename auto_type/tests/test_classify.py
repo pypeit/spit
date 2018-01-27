@@ -20,6 +20,9 @@ def test_classify_arc():
     # Tests from_dict too
     answer = classify_me(data_path('r6.fits'))
     assert answer == 'ARC'
+    # Failure
+    with pytest.raises(IOError):
+        answer = classify_me(data_path('r6.fits'), save_dir='this_better_fail')
 
 
 
