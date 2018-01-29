@@ -227,12 +227,14 @@ def print_versions():
     print("Python: " + sys.version)
 
 def run():
-    from auto_type import preprocess
+    from spit import preprocess
     print_versions()
 
     # Load the dataset
-    images_train, cls_train, labels_train, filenames_train = preprocess.load_linear_pngs(data_type="train_data")
-    images_test, cls_test, labels_test, filenames_test = preprocess.load_linear_pngs(data_type="test_data")
+    images_train, cls_train, labels_train, filenames_train = preprocess.load_linear_pngs(
+        data_type="train_data")
+    images_test, cls_test, labels_test, filenames_test = preprocess.load_linear_pngs(
+        data_type="test_data")
 
     # Dataset sizes
     print("Size of:")
