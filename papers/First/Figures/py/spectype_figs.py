@@ -19,6 +19,7 @@ from astropy.io import fits
 
 from spit import preprocess as spit_p
 from spit import classify as spit_c
+from spit.classifier import Classifier
 
 
 # Local
@@ -252,11 +253,10 @@ def fig_test_accuracy(field=None, outfil=None):
         outfil = 'fig_test_accuracy.png'
 
     # Load classifier and initialize
-    tf_dict = spit_c.init_session()
-    spit_c.init_variables(tf_dict)
+    classifier = Classifier(resource_filename('spit', '/data/checkpoints/kast_original/best_validation'))
 
     # Run me
-    print_test_accuracy(show_confusion_matrix=True, show_example_errors=True)
+    print_test_accuracy(classifier, show_confusion_matrix=True, show_example_errors=True)
 
     '''
     # Targets only

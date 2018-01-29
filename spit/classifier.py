@@ -46,8 +46,8 @@ class Classifier(object):
         from spit import image_loader as il
         self.x = tf.placeholder(tf.float32, shape=[None, il.img_size_flat], name='x')
         x_image = tf.reshape(self.x, [-1, il.image_height, il.image_width, il.num_channels])
-        y_true = tf.placeholder(tf.float32, shape=[None, il.num_classes], name='y_true')
-        y_true_cls = tf.argmax(y_true, axis=1)
+        self.y_true = tf.placeholder(tf.float32, shape=[None, il.num_classes], name='y_true')
+        self.y_true_cls = tf.argmax(self.y_true, axis=1)
         x_pretty = pt.wrap(x_image)
 
         with tf.Graph().as_default(), pt.defaults_scope(activation_fn=tf.nn.relu):
@@ -58,11 +58,11 @@ class Classifier(object):
                 max_pool(kernel=2, stride=2). \
                 flatten(). \
                 fully_connected(size=128, name='layer_fc1'). \
-                softmax_classifier(num_classes=il.num_classes, labels=y_true)
+                softmax_classifier(num_classes=il.num_classes, labels=self.y_true)
 
         optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-        y_pred_cls = tf.argmax(self.y_pred, axis=1)
-        correct_prediction = tf.equal(y_pred_cls, y_true_cls)
+        self.y_pred_cls = tf.argmax(self.y_pred, axis=1)
+        correct_prediction = tf.equal(self.y_pred_cls, self.y_true_cls)
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         self.session = tf.Session()
         # Return

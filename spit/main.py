@@ -37,15 +37,36 @@ def predict_cls_validation():
                        labels = labels_val,
                        cls_true = cls_val)
 
-def predict_cls_test():
+def predict_cls_test(classifier):
+    """  Run the Classifier on the test images
+    Parameters
+    ----------
+    classifier : Classifier
+
+    Returns
+    -------
+
+    """
     from spit.preprocess import load_linear_pngs
     images_test, cls_test, labels_test, filenames_test = load_linear_pngs(data_type="test_data")
-    return predict_cls(images = images_test,
+    return predict_cls(classifier, images = images_test,
                        labels = labels_test,
                        cls_true = cls_test)
 
 
-def predict_cls(images, labels, cls_true):
+def predict_cls(classifier, images, labels, cls_true):
+    """
+    Parameters
+    ----------
+    classifier : Classifier
+    images : list
+    labels : list
+    cls_true
+
+    Returns
+    -------
+
+    """
     # Number of images.
     num_images = len(images)
 
@@ -66,11 +87,11 @@ def predict_cls(images, labels, cls_true):
 
         # Create a feed-dict with the images and labels
         # between index i and j.
-        feed_dict = {x: images[i:j, :],
-                     y_true: labels[i:j, :]}
+        feed_dict = {classifier.x: images[i:j, :],
+                     classifier.y_true: labels[i:j, :]}
 
         # Calculate the predicted class using TensorFlow.
-        cls_pred[i:j] = session.run(y_pred_cls, feed_dict=feed_dict)
+        cls_pred[i:j] = classifier.session.run(classifier.y_pred_cls, feed_dict=feed_dict)
 
         # Set the start-index for the next batch to the
         # end-index of the current batch.
@@ -132,12 +153,23 @@ def cls_accuracy(correct):
 #####################################
 # PRINT TEST ACCURACIES
 #####################################
-def print_test_accuracy(show_example_errors=False,
+def print_test_accuracy(classifier, show_example_errors=False,
                         show_confusion_matrix=False):
+    """
+    Parameters
+    ----------
+    classifier : Classifier
+    show_example_errors : bool, optional
+    show_confusion_matrix : bool, optional
+
+    Returns
+    -------
+
+    """
 
     # For all the images in the test-set,
     # calculate the predicted classes and whether they are correct.
-    correct, cls_pred = predict_cls_test()
+    correct, cls_pred = predict_cls_test(classifier)
 
     # Classification accuracy and the number of correct classifications.
     acc, num_correct = cls_accuracy(correct)
