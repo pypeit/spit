@@ -18,6 +18,7 @@ import matplotlib.gridspec as gridspec
 from astropy.io import fits
 
 from spit import preprocess as spit_p
+from spit import classify as spit_c
 
 
 # Local
@@ -249,6 +250,10 @@ def fig_test_accuracy(field=None, outfil=None):
     # Init
     if outfil is None:
         outfil = 'fig_test_accuracy.png'
+
+    # Load classifier and initialize
+    tf_dict = spit_c.init_session()
+    spit_c.init_variables(tf_dict)
 
     # Run me
     print_test_accuracy(show_confusion_matrix=True, show_example_errors=True)

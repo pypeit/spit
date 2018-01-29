@@ -9,6 +9,26 @@ import os, sys, time
 # Use PrettyTensor to simplify Neural Network construction.
 import prettytensor as pt
 
+# Some globals
+
+# The image batches that will be used in training sets
+train_batch_size = 10
+
+# Split the data-set in batches of this size to limit RAM usage.
+batch_size = 10
+
+# Best validation accuracy seen so far.
+best_test_accuracy = 0.0
+
+# Iteration-number for last improvement to validation accuracy.
+last_improvement = 0
+
+# Stop optimization if no improvement found in this many iterations.
+require_improvement = 10000
+
+# Counter for total number of iterations performed so far.
+total_iterations = 0
+
 ##################################################
 # HELPER FUNCTION FOR CALCULATING CLASSIFICATIONS
 ##################################################
@@ -18,9 +38,12 @@ def predict_cls_validation():
                        cls_true = cls_val)
 
 def predict_cls_test():
+    from spit.preprocess import load_linear_pngs
+    images_test, cls_test, labels_test, filenames_test = load_linear_pngs(data_type="test_data")
     return predict_cls(images = images_test,
                        labels = labels_test,
                        cls_true = cls_test)
+
 
 def predict_cls(images, labels, cls_true):
     # Number of images.
@@ -57,6 +80,7 @@ def predict_cls(images, labels, cls_true):
     correct = (cls_true == cls_pred)
 
     return correct, cls_pred
+
 
 def random_train_batch():
     # Number of images in the training-set.
@@ -345,23 +369,6 @@ def run():
     save_validation_path = os.path.join(save_dir, 'best_validation')
     save_done_path = os.path.join(save_dir, 'done_training')
 
-    # The image batches that will be used in training sets
-    train_batch_size = 10
-
-    # Split the data-set in batches of this size to limit RAM usage.
-    batch_size = 10
-
-    # Best validation accuracy seen so far.
-    best_test_accuracy = 0.0
-
-    # Iteration-number for last improvement to validation accuracy.
-    last_improvement = 0
-
-    # Stop optimization if no improvement found in this many iterations.
-    require_improvement = 10000
-
-    # Counter for total number of iterations performed so far.
-    total_iterations = 0
 
     # TensorFlow run
     session = tf.Session()

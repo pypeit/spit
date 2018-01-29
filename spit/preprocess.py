@@ -2,9 +2,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np, glob, math
 from astropy.io import fits
-from os import walk
-import pickle
-import json
 from scipy import misc
 import tensorflow as tf
 import pdb
@@ -52,7 +49,6 @@ def one_hot_encoded(class_numbers, num_classes=None):
     :return:
         2-dim array of shape: [len(cls), num_classes]
     """
-
     # Find the number of classes if None is provided.
     if num_classes is None:
         num_classes = np.max(class_numbers) - 1
@@ -188,7 +184,7 @@ def load_data_cropped200x600(data_type, img_path='/soe/vjankov/scratchdisk/'):
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
 
-def load_linear_pngs(data_type, img_path='/soe/vjankov/scratchdisk/'):
+def load_linear_pngs(data_type, img_path='/scratch/citrisdance_viktor/'):
     image_data = {}
     bias_label = 0
     science_label = 1
@@ -219,6 +215,7 @@ def load_linear_pngs(data_type, img_path='/soe/vjankov/scratchdisk/'):
 
         
     elif data_type == "test_data":
+        print("Loading the test data..")
         load_batch_size = 160
         data_locations = [ \
                 img_path+"viktor_astroimage/linear_datasets/real_bias_test/*", \
@@ -259,7 +256,8 @@ def load_linear_pngs(data_type, img_path='/soe/vjankov/scratchdisk/'):
         raw_data = raw_data + image_array
         labels = labels + image_labels
         filenames = filenames + image_filenames
-        
+
+    print("Loaded!")
     # Get the raw images.
     raw_images = np.array(raw_data)
     
