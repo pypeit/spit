@@ -6,10 +6,15 @@ from astropy.io import fits
 from PIL import Image
 from enum import Enum
 
+from scipy import misc
+
+from collections import OrderedDict
+
 import pdb
 
 from spit.preprocess import trim_image
 from spit.preprocess import zscale
+from spit.preprocess import one_hot_encoded
 from spit.utils import congrid
 
 sys.dont_write_bytecode = True
@@ -48,43 +53,210 @@ num_classes = 5
 # from the previous running average by this much, then detect an overscan region
 cutoff_percent = 1.10
 
-'''
-def get_viewer_and_server():
-    # Set this to True if you have a non-buggy python OpenCv bindings--it greatly speeds up some operations
-    use_opencv = False
+# Mapping from image type to index
+label_dict = OrderedDict()
+label_dict['bias_label']=0
+label_dict['science_label']=1
+label_dict['standard_label']=2
+label_dict['arc_label']=3
+label_dict['flat_label']=4
 
-    server = ipg.make_server(host='localhost', port=9915, use_opencv=use_opencv)
+def load_linear_pngs(data_type, img_path='/scratch/citrisdance_viktor/'):
+    image_data = {}
 
-    # Start viewer server
-    # IMPORTANT: if running in an IPython/Jupyter notebook, use the no_ioloop=True option
-    server.start(no_ioloop=True)
+    # Define the image locations
+    if data_type == "train_data":
+        load_batch_size = 504
+        data_locations = [ \
+            img_path+"viktor_astroimage/linear_datasets/bias_train/*", \
+            img_path+"viktor_astroimage/linear_datasets/science_train/*", \
+            img_path+"viktor_astroimage/linear_datasets/standard_train/*", \
+            img_path+"viktor_astroimage/linear_datasets/arc_train/*", \
+            img_path+"viktor_astroimage/linear_datasets/flat_train/*", \
+            img_path+"viktor_astroimage/linear_datasets/bias_validation/*", \
+            img_path+"viktor_astroimage/linear_datasets/science_validation/*", \
+            img_path+"viktor_astroimage/linear_datasets/standard_validation/*", \
+            img_path+"viktor_astroimage/linear_datasets/arc_validation/*", \
+            img_path+"viktor_astroimage/linear_datasets/flat_validation/*", \
+            img_path+"viktor_astroimage/linear_datasets/bias_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/science_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/science_enforced/*", \
+            img_path+"viktor_astroimage/linear_datasets/standard_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/arc_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/flat_test/*"]
 
-    # Get a viewer
-    # This will get a handle to the viewer v1 = server.get_viewer('v1')
-    v1 = server.get_viewer('v1')
 
-    return v1, server
+    elif data_type == "kast_test_data":
+        print("Loading the test data..")
+        load_batch_size = 160
+        data_locations = [ \
+            img_path+"viktor_astroimage/linear_datasets/real_bias_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/real_science_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/real_standard_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/real_arc_test/*", \
+            img_path+"viktor_astroimage/linear_datasets/real_flat_test/*"]
 
-def get_viewer_address():
-    return v1.url
+    # Construct the dict arrays
+    raw_data = []
+    labels = []
+    filenames = []
 
-def set_viewer_prefs(v1):
-    # set a color map on the viewer 
-    v1.set_color_map('gray')
+    for index, location in enumerate(data_locations):
+        images = glob.glob(location)
+        image_array = []
+        image_labels = []
+        image_filenames = []
+        for image_file in images:
+            image_data = misc.imread(image_file, mode='L')
+            padded_image = image_data.flatten()
+            image_array.append(padded_image)
+            image_label = 0
+            if "bias" in image_file:
+                image_label = label_dict['bias_label']
+            elif "science" in image_file:
+                image_label = label_dict['science_label']
+            elif "standard" in image_file:
+                image_label = label_dict['standard_label']
+            elif "arc" in image_file:
+                image_label = label_dict['arc_label']
+            elif "flat" in image_file:
+                image_label = label_dict['flat_label']
 
-    # Set color distribution algorithm
-    # choices: linear, log, power, sqrt, squared, asinh, sinh, histeq, 
-    v1.set_color_algorithm('linear')
-    # Set cut level algorithm to use
-    v1.set_autocut_params('zscale', contrast=0.25)
-    # Auto cut levels on the image
-    v1.auto_levels()
-    # set the window size
-    v1.set_window_size(650, 210)
+            image_labels.append(image_label)
+            image_filenames.append(image_file)
 
-def stop_server(server):
-    server.stop()
-'''
+        raw_data = raw_data + image_array
+        labels = labels + image_labels
+        filenames = filenames + image_filenames
+
+    print("Loaded!")
+    # Get the raw images.
+    raw_images = np.array(raw_data)
+
+    # Get the class-numbers for each image. Convert to numpy-array.
+    cls = np.array(labels)
+
+    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+
+def load_images():
+    data_locations = [ \
+        "images/bias/linear*", \
+        "images/science/linear*", \
+        "images/standard/linear*", \
+        "images/arc/linear*", \
+        "images/flat/linear*"]
+
+    raw_data = []
+    labels = []
+    filenames = []
+
+    for index, location in enumerate(data_locations):
+        images = glob.glob(location)
+        image_array = []
+        image_labels = []
+        image_filenames = []
+        for image_file in images:
+            image_data = misc.imread(image_file, mode='L')
+            padded_image = image_data.flatten()
+
+            image_array.append(padded_image)
+            image_labels.append(index)
+            image_filenames.append(image_file)
+
+        raw_data = raw_data + image_array
+        labels = labels + image_labels
+        filenames = filenames + image_filenames
+
+    # Get the raw images.
+    raw_images = np.array(raw_data)
+
+    # Get the class-numbers for each image. Convert to numpy-array.
+    cls = np.array(labels)
+
+    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+
+def load_all_data():
+    data_locations = [ \
+        "images/bias/linear*", \
+        "images/science/linear*", \
+        "images/standard/linear*", \
+        "images/arc/linear*", \
+        "images/flat/linear*"]
+
+    raw_data = []
+    labels = []
+    filenames = []
+
+    for index, location in enumerate(data_locations):
+        images = glob.glob(location)
+        image_array = []
+        image_labels = []
+        image_filenames = []
+        for image_file in images:
+            image_data = misc.imread(image_file, mode='L')
+            padded_image = image_data.flatten()
+
+            image_array.append(padded_image)
+            image_labels.append(index)
+            image_filenames.append(image_file)
+
+        raw_data = raw_data + image_array
+        labels = labels + image_labels
+        filenames = filenames + image_filenames
+
+    data_locations = [ \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_train_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_train_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_train_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_train_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_train_histequ/*"]
+
+    for index, location in enumerate(data_locations):
+        images = glob.glob(location)
+        image_array = []
+        image_labels = []
+        image_filenames = []
+        for image_file in images:
+            image_data = misc.imread(image_file, mode='L')
+            padded_image = image_data.flatten()
+
+            image_array.append(padded_image)
+            image_labels.append(index)
+            image_filenames.append(image_file)
+
+        raw_data = raw_data + image_array
+        labels = labels + image_labels
+        filenames = filenames + image_filenames
+
+    data_locations = [ \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_test_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_test_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_test_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_test_histequ/*", \
+        "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_test_histequ/*"]
+
+    for index, location in enumerate(data_locations):
+        images = glob.glob(location)
+        image_array = []
+        image_filenames = []
+        for image_file in images:
+            image_data = misc.imread(image_file, mode='L')
+            padded_image = image_data.flatten()
+
+            image_array.append(padded_image)
+            image_labels.append(index)
+            image_filenames.append(image_file)
+
+        raw_data = raw_data + image_array
+        labels = labels + image_labels
+        filenames = filenames + image_filenames
+    # Get the raw images.
+    raw_images = np.array(raw_data)
+
+    # Get the class-numbers for each image. Convert to numpy-array.
+    cls = np.array(labels)
+
+    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
 
 
 def load_images_arr(image_file, outfile=None):

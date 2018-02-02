@@ -244,62 +244,75 @@ def fig_trim(field=None, outfil=None):
     print("Wrote: {:s}".format(outfil))
 
 
-def fig_test_accuracy(field=None, outfil=None):
-    """ Test accuracy
+def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
+    """ Test accuracy figure
     """
     from spit.main import print_test_accuracy
+    from spit.images import Images
+    from sklearn.metrics import confusion_matrix
+    from spit import preprocess
+    from spit.image_loader import label_dict
+    num_classes = preprocess.num_classes
+
     # Init
-    if outfil is None:
-        outfil = 'fig_test_accuracy.png'
+    if outfile is None:
+        outfile = 'fig_test_accuracy.png'
 
-    # Load classifier and initialize
-    classifier = Classifier(resource_filename('spit', '/data/checkpoints/kast_original/best_validation'))
+    if cm is None:
+        # Load classifier and initialize
+        classifier = Classifier(resource_filename('spit', '/data/checkpoints/kast_original/best_validation'))
 
-    # Run me
-    print_test_accuracy(classifier, show_confusion_matrix=True, show_example_errors=True)
+        # Load images
+        images = Images('kast_test_data')
 
-    '''
-    # Targets only
+        # Run me
+        print_test_accuracy(classifier, images,
+                            show_confusion_matrix=False, show_example_errors=False)
+
+        cls_true = images.cls
+
+        # Get the confusion matrix using sklearn.
+        cm = confusion_matrix(y_true=cls_true,
+                              y_pred=classifier.cls_pred)
+        if return_cm:
+            return cm
+
+    # Print the confusion matrix as text.
+    print(cm)
+
     plt.figure(figsize=(12, 5))
     plt.clf()
-    gs = gridspec.GridSpec(2,1)
 
-    #plt.suptitle('{:s}: MMT/Hectospec Targets'.format(field[0])
-    #    ,fontsize=19.)
+    # Plot the confusion matrix as an image.
+    mpl = plt.matshow(cm)
 
-    cm = plt.get_cmap('Greys')
-
-    # Untrimmed
-    z1,z2 = spit_p.zscale(img, only_range=True)
-
-    ax0 = plt.subplot(gs[0])
-    # Plot
-    ax0.imshow(img, cmap=cm, vmin=z1, vmax=z2)
-    # Axes
-    ax0.axis('off')
-
-
-    # Trimmed
-    timg = spit_p.trim_image(img)
-    ax1 = plt.subplot(gs[1])
-    # z-Scale
-    z1,z2 = spit_p.zscale(timg, only_range=True)
-
-    # Plot
-    ax1.imshow(timg, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
-    # Axes
-    ax1.axis('off')
+    # Make various adjustments to the plot.
+    cb = plt.colorbar(mpl, fraction=0.030, pad=0.04)
+    cb.set_label('N Images')
 
     # Labels
-    #ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
-    #        size='large', ha='left', va='top')
+    labels = []
+    for key in label_dict.keys():
+        labels.append(key.split('_'))
 
-    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
-    plt.savefig(outfil, dpi=700)
-    plt.close()
-    print("Wrote: {:s}".format(outfil))
     '''
+    tick_marks = np.array(labels)
+    plt.xticks(range(len(labels)), tick_marks)
+    plt.yticks(range(len(labels)), tick_marks)
+    '''
+    tick_marks = np.arange(num_classes)
+    plt.xticks(tick_marks, range(num_classes))
+    plt.yticks(tick_marks, range(num_classes))
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
 
+    # Finish
+    #plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    plt.savefig(outfile, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfile))
+
+    return cm
 
 def set_fontsize(ax,fsz):
     '''

@@ -5,6 +5,7 @@ import tensorflow as tf
 import numpy as np
 from datetime import timedelta
 import os, sys, time
+import pdb
 
 # Use PrettyTensor to simplify Neural Network construction.
 import prettytensor as pt
@@ -37,7 +38,7 @@ def predict_cls_validation():
                        labels = labels_val,
                        cls_true = cls_val)
 
-def predict_cls_test(classifier):
+def predict_cls_test(classifier, images):
     """  Run the Classifier on the test images
     Parameters
     ----------
@@ -47,11 +48,8 @@ def predict_cls_test(classifier):
     -------
 
     """
-    from spit.preprocess import load_linear_pngs
-    images_test, cls_test, labels_test, filenames_test = load_linear_pngs(data_type="test_data")
-    return predict_cls(classifier, images = images_test,
-                       labels = labels_test,
-                       cls_true = cls_test)
+    #from spit.preprocess import load_linear_pngs
+    return predict_cls(classifier, images.images, images.labels, images.cls)
 
 
 def predict_cls(classifier, images, labels, cls_true):
@@ -153,7 +151,7 @@ def cls_accuracy(correct):
 #####################################
 # PRINT TEST ACCURACIES
 #####################################
-def print_test_accuracy(classifier, show_example_errors=False,
+def print_test_accuracy(classifier, images, show_example_errors=False,
                         show_confusion_matrix=False):
     """
     Parameters
@@ -166,10 +164,12 @@ def print_test_accuracy(classifier, show_example_errors=False,
     -------
 
     """
+    from spit.plots import plot_example_errors
+    from spit.plots import plot_confusion_matrix
 
     # For all the images in the test-set,
     # calculate the predicted classes and whether they are correct.
-    correct, cls_pred = predict_cls_test(classifier)
+    correct, classifier.cls_pred = predict_cls_test(classifier, images)
 
     # Classification accuracy and the number of correct classifications.
     acc, num_correct = cls_accuracy(correct)
@@ -184,12 +184,12 @@ def print_test_accuracy(classifier, show_example_errors=False,
     # Plot some examples of mis-classifications, if desired.
     if show_example_errors:
         print("Example errors:")
-        plot_example_errors(cls_pred=cls_pred, correct=correct)
+        plot_example_errors(images, cls_pred=classifier.cls_pred, correct=correct)
 
     # Plot the confusion matrix, if desired.
     if show_confusion_matrix:
         print("Confusion Matrix:")
-        plot_confusion_matrix(cls_pred=cls_pred)
+        plot_confusion_matrix(images, classifier)
 
 ########################
 # OPTIMIZATION FUNCTION

@@ -34,6 +34,7 @@ class Classifier(object):
             if len(files) == 0:
                 raise IOError("Bad croot to Classifier!")
         # Setup Tensorflow
+        print("Loading the Classifier: {:s}".format(croot))
         self.init_session()
         self.init_variables()
         # Load
