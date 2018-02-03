@@ -6,8 +6,8 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import glob, os, sys, json
-import warnings
 import pdb
+from pkg_resources import resource_filename
 
 import matplotlib as mpl
 mpl.rcParams['font.family'] = 'stixgeneral'
@@ -15,25 +15,17 @@ from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 
 
-from astropy import units as u
-from astropy import constants as const
-from astropy.coordinates import SkyCoord, match_coordinates_sky
 from astropy.io import fits
 
-from ginga.util import zscale
+from spit import preprocess as spit_p
+
 
 # Local
 #sys.path.append(os.path.abspath("../Analysis/py"))
 #import coshalo_lls as chlls
 
 
-
-def fig_images(field=None, outfil=None):
-    """ Spectral images
-    """
-    # Init
-    if outfil is None:
-        outfil = 'fig_spec_images.png'
+def setup_image_set(set=['all']):
     # Images
     img_path = os.getenv('HOME')+'/Lick/Kast/data/2014aug28/Raw/'
     images = []
@@ -42,6 +34,24 @@ def fig_images(field=None, outfil=None):
     images.append(dict(type='Arc', frame='b294'))
     images.append(dict(type='Standard', frame='b289'))
     images.append(dict(type='Science', frame='b264'))
+    # Parse
+    if set[0] == 'all':
+        final_images = images
+    else:
+        final_images = []
+        for kk,image in enumerate(images):
+            if image['type'] in set:
+                final_images.append(images[kk].copy())
+    # Return
+    return img_path, final_images
+
+def fig_images(field=None, outfil=None):
+    """ Spectral images
+    """
+    # Init
+    if outfil is None:
+        outfil = 'fig_spec_images.png'
+    img_path, images = setup_image_set()
 
     # Targets only
     plt.figure(figsize=(5, 5))
@@ -61,7 +71,7 @@ def fig_images(field=None, outfil=None):
         img = hdu[0].data
 
         # z-Scale
-        z1,z2 = zscale.zscale(img)
+        z1,z2 = spit_p.zscale(img, only_range=True)
         #pdb.set_trace()
 
 
@@ -82,6 +92,208 @@ def fig_images(field=None, outfil=None):
     plt.close()
     print("Wrote: {:s}".format(outfil))
 
+def fig_zscale(field=None, outfil=None):
+    """ Compare two views of the same image.
+    With and without ZSCALE
+    """
+    # Init
+    if outfil is None:
+        outfil = 'fig_zscale.png'
+    img_path, images = setup_image_set(set=['Bias'])
+    # Load bias
+    hdu = fits.open(img_path+images[0]['frame']+'.fits.gz')
+    img = hdu[0].data
+
+    # Targets only
+    plt.figure(figsize=(12, 5))
+    plt.clf()
+    gs = gridspec.GridSpec(2,1)
+
+    #plt.suptitle('{:s}: MMT/Hectospec Targets'.format(field[0])
+    #    ,fontsize=19.)
+
+    cm = plt.get_cmap('Greys')
+
+    # Without zscale
+    ax0 = plt.subplot(gs[0])
+    # Plot
+    ax0.imshow(img, cmap=cm, vmin=0, vmax=1062)
+    # Axes
+    ax0.axis('off')
+
+
+    # With zscale
+    ax1 = plt.subplot(gs[1])
+    # z-Scale
+    z1,z2 = spit_p.zscale(img, only_range=True)
+
+    # Plot
+    ax1.imshow(img, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
+    # Axes
+    ax1.axis('off')
+
+    # Labels
+    #ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
+    #        size='large', ha='left', va='top')
+
+    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    plt.savefig(outfil, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfil))
+
+
+def fig_find_trimsec(outfile=None):
+    """ DEIMOS completeness figure
+        Using the MAG_MAX in the YAML files
+    """
+    if outfile is None:
+        outfile = 'fig_find_trimsec.pdf'
+
+    # Load image
+    arc_file = resource_filename('auto_type', 'tests/files/r6.fits')
+    hdulist = fits.open(arc_file)
+    img = hdulist[0].data
+
+    #
+    timg, stuff = spit_p.trim_image(img, ret_all=True)
+    max_vals, cutoff_f, cutoff_b = stuff
+
+
+    # Plot
+    plt.figure(figsize=(5, 4))
+    plt.clf()
+    gs = gridspec.GridSpec(1,1)
+    ax = plt.subplot(gs[0])
+
+    ax.plot(max_vals, 'k', drawstyle='steps-mid')
+    # Lines
+    ax.axvline(cutoff_f, color='b', ls='dashed')
+    ax.axvline(len(max_vals)-cutoff_b, color='b', ls='dashed')
+
+
+    # Labels
+    ax.set_xlabel('Row')
+    ax.set_ylabel('Maximum Value')
+    #ax.set_xlim(17., 24.)
+    #ax.set_ylim(0., 1.05)
+
+    set_fontsize(ax, 13.)
+    # Legend
+    #legend = plt.legend(loc='upper right', scatterpoints=1, borderpad=0.2,
+    #                    handletextpad=0.1, fontsize='large')
+
+    plt.tight_layout(pad=0.2,h_pad=0.3,w_pad=0.0)
+    plt.savefig(outfile, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfile))
+
+
+def fig_trim(field=None, outfil=None):
+    """ Compare two views of the same image.
+    With and without ZSCALE
+    """
+    # Init
+    if outfil is None:
+        outfil = 'fig_trim.png'
+
+    # Load image
+    arc_file = resource_filename('auto_type', 'tests/files/r6.fits')
+    hdulist = fits.open(arc_file)
+    img = hdulist[0].data
+
+    # Targets only
+    plt.figure(figsize=(12, 5))
+    plt.clf()
+    gs = gridspec.GridSpec(2,1)
+
+    #plt.suptitle('{:s}: MMT/Hectospec Targets'.format(field[0])
+    #    ,fontsize=19.)
+
+    cm = plt.get_cmap('Greys')
+
+    # Untrimmed
+    z1,z2 = spit_p.zscale(img, only_range=True)
+
+    ax0 = plt.subplot(gs[0])
+    # Plot
+    ax0.imshow(img, cmap=cm, vmin=z1, vmax=z2)
+    # Axes
+    ax0.axis('off')
+
+
+    # Trimmed
+    timg = spit_p.trim_image(img)
+    ax1 = plt.subplot(gs[1])
+    # z-Scale
+    z1,z2 = spit_p.zscale(timg, only_range=True)
+
+    # Plot
+    ax1.imshow(timg, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
+    # Axes
+    ax1.axis('off')
+
+    # Labels
+    #ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
+    #        size='large', ha='left', va='top')
+
+    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    plt.savefig(outfil, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfil))
+
+
+def fig_test_accuracy(field=None, outfil=None):
+    """ Test accuracy
+    """
+    from spit.main import print_test_accuracy
+    # Init
+    if outfil is None:
+        outfil = 'fig_test_accuracy.png'
+
+    # Run me
+    print_test_accuracy(show_confusion_matrix=True, show_example_errors=True)
+
+    '''
+    # Targets only
+    plt.figure(figsize=(12, 5))
+    plt.clf()
+    gs = gridspec.GridSpec(2,1)
+
+    #plt.suptitle('{:s}: MMT/Hectospec Targets'.format(field[0])
+    #    ,fontsize=19.)
+
+    cm = plt.get_cmap('Greys')
+
+    # Untrimmed
+    z1,z2 = spit_p.zscale(img, only_range=True)
+
+    ax0 = plt.subplot(gs[0])
+    # Plot
+    ax0.imshow(img, cmap=cm, vmin=z1, vmax=z2)
+    # Axes
+    ax0.axis('off')
+
+
+    # Trimmed
+    timg = spit_p.trim_image(img)
+    ax1 = plt.subplot(gs[1])
+    # z-Scale
+    z1,z2 = spit_p.zscale(timg, only_range=True)
+
+    # Plot
+    ax1.imshow(timg, vmin=z1, vmax=z2, cmap=cm)#, extent=(imsize/2., -imsize/2, -imsize/2.,imsize/2))
+    # Axes
+    ax1.axis('off')
+
+    # Labels
+    #ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
+    #        size='large', ha='left', va='top')
+
+    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    plt.savefig(outfil, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfil))
+    '''
 
 
 def set_fontsize(ax,fsz):
@@ -112,14 +324,29 @@ def main(flg_fig):
     if flg_fig & (2**0):
         fig_images()
 
+    # zscale
+    if flg_fig & (2**1):
+        fig_zscale()
+
+    # Trim
+    if flg_fig & (2**2):
+        fig_find_trimsec()#'fig_find_trimsec.png')
+        fig_trim()
+
+    # Test Accuracy
+    if flg_fig & (2**3):
+        fig_test_accuracy()
+
+
 # Command line execution
 if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         flg_fig = 0
-        flg_fig += 2**0   # Spectral images
-        #flg_fig += 2**1   # Hectospec targeting
-        #flg_fig += 2**2   # Hectospec completeness
+        #flg_fig += 2**0   # Spectral images
+        #flg_fig += 2**1   # zscale
+        #flg_fig += 2**2   # trim
+        flg_fig += 2**3   # Test accuracy
     else:
         flg_fig = sys.argv[1]
 

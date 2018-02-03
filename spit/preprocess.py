@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division, unicode_literals
+
 import numpy as np, glob, math
 from astropy.io import fits
 from os import walk
@@ -5,6 +7,9 @@ import pickle
 import json
 from scipy import misc
 import tensorflow as tf
+import pdb
+
+from spit import zscale as aut_z
 
 ########################################################################
 # Various constants for the size of the images.
@@ -85,7 +90,7 @@ def resize_image(image_data, sess):
     
     return padded_image
 
-def load_data_cropped200x600(data_type):
+def load_data_cropped200x600(data_type, img_path='/soe/vjankov/scratchdisk/'):
     image_data = {}
     """
     a)
@@ -116,30 +121,30 @@ def load_data_cropped200x600(data_type):
         load_batch_size = 5400
 
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/bias_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/science_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/standard_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/arc_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/flat_train/*"]
+                img_path+"viktor_astroimage/bias_train/*", \
+                img_path+"viktor_astroimage/science_train/*", \
+                img_path+"viktor_astroimage/standard_train/*", \
+                img_path+"viktor_astroimage/arc_train/*", \
+                img_path+"viktor_astroimage/flat_train/*"]
         
     elif data_type == "test_data":
         load_batch_size = 1650
 
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/bias_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/science_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/standard_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/arc_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/flat_test/*"]
+                img_path+"viktor_astroimage/bias_test/*", \
+                img_path+"viktor_astroimage/science_test/*", \
+                img_path+"viktor_astroimage/standard_test/*", \
+                img_path+"viktor_astroimage/arc_test/*", \
+                img_path+"viktor_astroimage/flat_test/*"]
 
     elif data_type == "validation_data":
         load_batch_size = 1350
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/bias_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/science_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/standard_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/arc_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/flat_validation/*"]
+                img_path+"viktor_astroimage/bias_validation/*", \
+                img_path+"viktor_astroimage/science_validation/*", \
+                img_path+"viktor_astroimage/standard_validation/*", \
+                img_path+"viktor_astroimage/arc_validation/*", \
+                img_path+"viktor_astroimage/flat_validation/*"]
         
     # Construct the dict arrays
     raw_data = []
@@ -160,7 +165,7 @@ def load_data_cropped200x600(data_type):
             image_labels.append(index)
             image_filenames.append(image_file)
 
-	"""
+        """
         while len(image_array) < load_batch_size:
             image_array = image_array + image_array
             image_labels = image_labels + image_labels
@@ -169,7 +174,7 @@ def load_data_cropped200x600(data_type):
         raw_data = raw_data + image_array[:load_batch_size]
         labels = labels + image_labels[:load_batch_size]
         filenames = filenames + image_filenames[:load_batch_size]
-	"""
+        """
 
         raw_data = raw_data + image_array
         labels = labels + image_labels
@@ -183,7 +188,7 @@ def load_data_cropped200x600(data_type):
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
 
-def load_linear_pngs(data_type):
+def load_linear_pngs(data_type, img_path='/soe/vjankov/scratchdisk/'):
     image_data = {}
     bias_label = 0
     science_label = 1
@@ -195,32 +200,32 @@ def load_linear_pngs(data_type):
     if data_type == "train_data":
         load_batch_size = 504
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/bias_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/standard_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/arc_train/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/flat_train/*",\
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/bias_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/standard_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/arc_validation/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/flat_validation/*",\
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/bias_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/science_enforced/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/standard_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/arc_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/flat_test/*"]
+                img_path+"viktor_astroimage/linear_datasets/bias_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/standard_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/arc_train/*", \
+                img_path+"viktor_astroimage/linear_datasets/flat_train/*",\
+                img_path+"viktor_astroimage/linear_datasets/bias_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/standard_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/arc_validation/*", \
+                img_path+"viktor_astroimage/linear_datasets/flat_validation/*",\
+                img_path+"viktor_astroimage/linear_datasets/bias_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/science_enforced/*", \
+                img_path+"viktor_astroimage/linear_datasets/standard_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/arc_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/flat_test/*"]
 
         
     elif data_type == "test_data":
         load_batch_size = 160
         data_locations = [ \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_bias_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_science_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_standard_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_arc_test/*", \
-                "/soe/vjankov/scratchdisk/viktor_astroimage/linear_datasets/real_flat_test/*"]
+                img_path+"viktor_astroimage/linear_datasets/real_bias_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_science_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_standard_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_arc_test/*", \
+                img_path+"viktor_astroimage/linear_datasets/real_flat_test/*"]
                 
     # Construct the dict arrays
     raw_data = []
@@ -236,17 +241,17 @@ def load_linear_pngs(data_type):
             image_data = misc.imread(image_file, mode='L')
             padded_image = image_data.flatten()
             image_array.append(padded_image)
-	    image_label = 0
-	    if "bias" in image_file:
-		image_label = bias_label
-	    elif "science" in image_file:
-		image_label = science_label
-	    elif "standard" in image_file:
-		image_label = standard_label
-	    elif "arc" in image_file:
-		image_label = arc_label
-	    elif "flat" in image_file:
-		image_label = flat_label
+            image_label = 0
+            if "bias" in image_file:
+                image_label = bias_label
+            elif "science" in image_file:
+                image_label = science_label
+            elif "standard" in image_file:
+                image_label = standard_label
+            elif "arc" in image_file:
+                image_label = arc_label
+            elif "flat" in image_file:
+                image_label = flat_label
 
             image_labels.append(image_label)
             image_filenames.append(image_file)
@@ -330,11 +335,11 @@ def load_all_data():
         filenames = filenames + image_filenames
 
     data_locations = [ \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_train_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_train_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_train_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_train_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_train_histequ/*"]
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_train_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_train_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_train_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_train_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_train_histequ/*"]
 
     for index, location in enumerate(data_locations):
         images = glob.glob(location)
@@ -354,11 +359,11 @@ def load_all_data():
         filenames = filenames + image_filenames
 
     data_locations = [ \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_test_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_test_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_test_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_test_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_test_histequ/*"]
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_test_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_test_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_test_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_test_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_test_histequ/*"]
     for index, location in enumerate(data_locations):
         images = glob.glob(location)
         image_array = []
@@ -377,11 +382,11 @@ def load_all_data():
         filenames = filenames + image_filenames
                 
     data_locations = [ \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_validation_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_validation_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_validation_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_validation_histequ/*", \
-	"/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_validation_histequ/*"]
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/bias_validation_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/science_validation_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/standard_validation_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/arc_validation_histequ/*", \
+    "/soe/vjankov/scratchdisk/viktor_astroimage/histequ_datasets/flat_validation_histequ/*"]
         
     for index, location in enumerate(data_locations):
         images = glob.glob(location)
@@ -406,3 +411,142 @@ def load_all_data():
     cls = np.array(labels)
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+
+
+def cutoff_forw(max_vals, cutoff_percent=1.15):
+    cutoff_point = 0
+    prev_val = 0
+    curr_val = 0
+    for idx in range(1, len(max_vals)):
+        prev_val = max_vals[idx - 1]
+        curr_val = max_vals[idx]
+
+        if curr_val > (cutoff_percent * prev_val):
+            cutoff_point = idx
+            break
+
+    return cutoff_point
+
+
+def cutoff_back(max_vals, cutoff_percent=1.15):
+    """ Trim image from the top"""
+    max_vals.reverse()
+    cutoff_point = 0
+    prev_val = 0
+    curr_val = 0
+    for idx in range(1, len(max_vals)):
+        prev_val = max_vals[idx - 1]
+        curr_val = max_vals[idx]
+
+        if curr_val > (cutoff_percent * prev_val):
+            cutoff_point = idx
+            break
+
+    return cutoff_point
+
+
+def trim_image(image, ret_all=False, **kwargs):
+    """ Trim down the image to the flux only region
+    Handles overscan and vignetted regions
+    """
+    import scipy
+    from astropy.stats import sigma_clip
+
+    # Rotate
+    shape = image.shape
+    if shape[0] > shape[1]:  # Vertical image?
+        image = scipy.ndimage.interpolation.rotate(image, angle=90.0)
+        shape = image.shape
+
+    # Clip and find maximum
+    filtered_data = sigma_clip(image, sigma=3, axis=0)
+    max_vals = np.max(filtered_data, axis=1)
+
+    # Identify top and bottom
+    cutoff_f = cutoff_forw(max_vals, **kwargs)
+    cutoff_b = cutoff_back(max_vals, **kwargs)
+    #
+    first = cutoff_f
+    second = shape[0] - cutoff_b
+
+    # Trim and return
+    if ret_all:
+        return image[first:second, :], (max_vals, cutoff_f, cutoff_b)
+    else:
+        return image[first:second, :]
+
+
+def cutoff_forw(max_vals, cutoff_percent=1.10):
+    """ Trim image from the bottom
+    max_vals : list
+      Maximum value of "filtered" sigma_clipped data
+    """
+    cutoff_point = 0
+    prev_val = 0
+    curr_val = 0
+    for idx in range(1,len(max_vals)):
+        prev_val = max_vals[idx-1]
+        curr_val = max_vals[idx]
+
+        if curr_val > (cutoff_percent * prev_val):
+            cutoff_point = idx
+            break
+
+    return cutoff_point
+
+
+def cutoff_back(max_vals, cutoff_percent=1.10):
+    """ Trim image from the top
+    max_vals : list
+      Maximum value of "filtered" sigma_clipped data
+    """
+    max_vals = max_vals[::-1]
+    cutoff_point = 0
+    prev_val = 0
+    curr_val = 0
+    for idx in range(1,len(max_vals)):
+        prev_val = max_vals[idx-1]
+        curr_val = max_vals[idx]
+
+        if curr_val > (cutoff_percent * prev_val):
+            cutoff_point = idx
+            break
+
+    return cutoff_point
+
+
+def zscale(image, chk=False, contrast=0.25, only_range=False):
+    """ Take an input image of any range and return a uint8 image
+    scaled by the ZSCALE algorithm
+
+    Parameters
+    ----------
+    image : ndarray of any type
+    contrast : float, optional
+      Passed to zscale algorithm
+
+    Returns
+    -------
+    zimage : ndarray of unit8
+      Ready to be saved as a PNG
+    if only_range is True, return z1,z2
+
+    """
+    # Find scale range
+    z1,z2 = aut_z.zscale(image, contrast=contrast)
+    if only_range:
+        return z1, z2
+    # Max, min
+    cut_data = np.minimum(image, z2)
+    cut_data = np.maximum(cut_data, z1)
+    if chk:
+        print(np.min(cut_data), np.max(cut_data))
+    # Rescale to 0 to 255
+    zimage = 255 * (cut_data - z1) / (z2 - z1)
+    zimage = zimage.astype(np.uint8)
+    if chk:
+        print(np.min(zimage), np.max(zimage))
+    # Return
+    return zimage
+
+
