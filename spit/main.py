@@ -5,9 +5,30 @@ import tensorflow as tf
 import numpy as np
 from datetime import timedelta
 import os, sys, time
+import pdb
 
 # Use PrettyTensor to simplify Neural Network construction.
 import prettytensor as pt
+
+# Some globals
+
+# The image batches that will be used in training sets
+train_batch_size = 10
+
+# Split the data-set in batches of this size to limit RAM usage.
+batch_size = 10
+
+# Best validation accuracy seen so far.
+best_test_accuracy = 0.0
+
+# Iteration-number for last improvement to validation accuracy.
+last_improvement = 0
+
+# Stop optimization if no improvement found in this many iterations.
+require_improvement = 10000
+
+# Counter for total number of iterations performed so far.
+total_iterations = 0
 
 ##################################################
 # HELPER FUNCTION FOR CALCULATING CLASSIFICATIONS
@@ -17,12 +38,33 @@ def predict_cls_validation():
                        labels = labels_val,
                        cls_true = cls_val)
 
-def predict_cls_test():
-    return predict_cls(images = images_test,
-                       labels = labels_test,
-                       cls_true = cls_test)
+def predict_cls_test(classifier, images):
+    """  Run the Classifier on the test images
+    Parameters
+    ----------
+    classifier : Classifier
 
-def predict_cls(images, labels, cls_true):
+    Returns
+    -------
+
+    """
+    #from spit.preprocess import load_linear_pngs
+    return predict_cls(classifier, images.images, images.labels, images.cls)
+
+
+def predict_cls(classifier, images, labels, cls_true):
+    """
+    Parameters
+    ----------
+    classifier : Classifier
+    images : list
+    labels : list
+    cls_true
+
+    Returns
+    -------
+
+    """
     # Number of images.
     num_images = len(images)
 
@@ -43,11 +85,11 @@ def predict_cls(images, labels, cls_true):
 
         # Create a feed-dict with the images and labels
         # between index i and j.
-        feed_dict = {x: images[i:j, :],
-                     y_true: labels[i:j, :]}
+        feed_dict = {classifier.x: images[i:j, :],
+                     classifier.y_true: labels[i:j, :]}
 
         # Calculate the predicted class using TensorFlow.
-        cls_pred[i:j] = session.run(y_pred_cls, feed_dict=feed_dict)
+        cls_pred[i:j] = classifier.session.run(classifier.y_pred_cls, feed_dict=feed_dict)
 
         # Set the start-index for the next batch to the
         # end-index of the current batch.
@@ -57,6 +99,7 @@ def predict_cls(images, labels, cls_true):
     correct = (cls_true == cls_pred)
 
     return correct, cls_pred
+
 
 def random_train_batch():
     # Number of images in the training-set.
@@ -108,12 +151,25 @@ def cls_accuracy(correct):
 #####################################
 # PRINT TEST ACCURACIES
 #####################################
-def print_test_accuracy(show_example_errors=False,
+def print_test_accuracy(classifier, images, show_example_errors=False,
                         show_confusion_matrix=False):
+    """
+    Parameters
+    ----------
+    classifier : Classifier
+    show_example_errors : bool, optional
+    show_confusion_matrix : bool, optional
+
+    Returns
+    -------
+
+    """
+    from spit.plots import plot_example_errors
+    from spit.plots import plot_confusion_matrix
 
     # For all the images in the test-set,
     # calculate the predicted classes and whether they are correct.
-    correct, cls_pred = predict_cls_test()
+    correct, classifier.cls_pred = predict_cls_test(classifier, images)
 
     # Classification accuracy and the number of correct classifications.
     acc, num_correct = cls_accuracy(correct)
@@ -128,12 +184,12 @@ def print_test_accuracy(show_example_errors=False,
     # Plot some examples of mis-classifications, if desired.
     if show_example_errors:
         print("Example errors:")
-        plot_example_errors(cls_pred=cls_pred, correct=correct)
+        plot_example_errors(images, cls_pred=classifier.cls_pred, correct=correct)
 
     # Plot the confusion matrix, if desired.
     if show_confusion_matrix:
         print("Confusion Matrix:")
-        plot_confusion_matrix(cls_pred=cls_pred)
+        plot_confusion_matrix(images, classifier)
 
 ########################
 # OPTIMIZATION FUNCTION
@@ -345,23 +401,6 @@ def run():
     save_validation_path = os.path.join(save_dir, 'best_validation')
     save_done_path = os.path.join(save_dir, 'done_training')
 
-    # The image batches that will be used in training sets
-    train_batch_size = 10
-
-    # Split the data-set in batches of this size to limit RAM usage.
-    batch_size = 10
-
-    # Best validation accuracy seen so far.
-    best_test_accuracy = 0.0
-
-    # Iteration-number for last improvement to validation accuracy.
-    last_improvement = 0
-
-    # Stop optimization if no improvement found in this many iterations.
-    require_improvement = 10000
-
-    # Counter for total number of iterations performed so far.
-    total_iterations = 0
 
     # TensorFlow run
     session = tf.Session()
@@ -378,7 +417,7 @@ def run():
     optimize(num_iterations=10000)
 
     # Print the test accuracy after 100 optimizations
-    print("Accuracies after 1000 iterations!")
+    print("Accuracies after 10000 iterations!")
     print_test_accuracy()
 
     # Save the mode lafter it's done training

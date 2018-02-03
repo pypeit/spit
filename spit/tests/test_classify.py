@@ -24,7 +24,7 @@ def test_classify_arc():
         assert answer == 'ARC'
     # Failure
     with pytest.raises(IOError):
-        answer = classify_me(data_path('r6.fits'), save_dir='this_better_fail')
+        answer = classify_me(data_path('r6.fits'), classifier_root='this_better_fail')
 
 
 
