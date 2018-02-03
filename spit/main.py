@@ -417,7 +417,7 @@ def run():
     optimize(num_iterations=10000)
 
     # Print the test accuracy after 100 optimizations
-    print("Accuracies after 1000 iterations!")
+    print("Accuracies after 10000 iterations!")
     print_test_accuracy()
 
     # Save the mode lafter it's done training
