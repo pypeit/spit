@@ -12,6 +12,16 @@ from auto_type.image_loader import cutoff_back, cutoff_forw
 
 
 def convert_images(data_locations):
+    """
+    Parameters
+    ----------
+    data_locations : list
+      Folders to use for image generation
+
+    Returns
+    -------
+
+    """
     for index, location in enumerate(data_locations):
         images = glob.glob(location)
         for image_file in images:
