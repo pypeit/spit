@@ -11,19 +11,18 @@ from spit import zscale as aut_z
 from spit import defs
 
 
-def process_image(image, flips=True):
+def process_image(image):
     """ Process a single image
-    
+
     Parameters
     ----------
     image : ndarray
+      Typically the RAW frame read from disk
 
     Returns
     -------
-    zimage : ndarray,  if flips=False
+    zimage : ndarray
        2D trimmed, resized, scaled image
-    images_array : ndarray,  if flips=True
-       Flattened, 4 flip version
     """
     from spit.utils import congrid
     # Trim
@@ -35,29 +34,52 @@ def process_image(image, flips=True):
     # zscale
     zimage = zscale(rimage)
 
-    # Flips?
-    if flips:
-        pil_image = Image.fromarray(zimage)
+    # Return
+    return zimage
 
-        # Generate flipped images
-        pil_image.transpose(Image.FLIP_TOP_BOTTOM)
-        ver_image = np.array(pil_image.transpose(Image.FLIP_TOP_BOTTOM))
-        hor_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT))
-        hor_ver_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM))
 
-        # Add flipped images to an array
+def flips(image, flatten=True):
+    """ Flip the input image this way and that
+
+    Parameters
+    ----------
+    image : ndarray
+    flatten : bool, optional
+
+    Returns
+    -------
+    if flatten=True,
+      images_array : ndarray
+        All 4 images in series of flattened arrays
+    else
+        image : ndarray
+           Original image
+        ver_image : ndarray
+          Flipped TOP_BOTTOM
+        hor_image : ndarray
+          Flipped LEFT_RIGHT
+        hor_ver_image : ndarray
+          Flipped both
+    """
+    pil_image = Image.fromarray(image)
+
+    # Generate flipped images
+    #pil_image.transpose(Image.FLIP_TOP_BOTTOM)
+    ver_image = np.array(pil_image.transpose(Image.FLIP_TOP_BOTTOM))
+    hor_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT))
+    hor_ver_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM))
+
+    if flatten: # Add flipped images to an array
         im_array = []
-        im_array.append(zimage.flatten())
+        im_array.append(image.flatten())
         im_array.append(ver_image.flatten())
         im_array.append(hor_image.flatten())
         im_array.append(hor_ver_image.flatten())
         images_array = np.array(im_array)
-
-        # Return
         return images_array
     else:
         # Return
-        return zimage
+        return image, ver_image, hor_image, hor_ver_image
 
 
 def resize_image(image_data, sess):

@@ -3,9 +3,20 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 
 def write_array_to_png(img, outfile, verbose=False):
+    """ Write input array to PNG
+    Parameters
+    ----------
+    img : ndarray
+    outfile : str
+    verbose : bool, optional
+
+    Returns
+    -------
+
+    """
     from PIL import Image
     pil_image = Image.fromarray(img)
-    pil_image.save(outfile)
+    pil_image.save(outfile, format='png')
     if verbose:
         print("Wrote image to {:s}".format(outfile))
 
