@@ -72,7 +72,10 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
         for i in range(ndims - 2, -1, -1):
             newa = newa.transpose(trorder)
 
-            mint = scipy.interpolate.interp1d(olddims[i], newa, kind=method, fill_value='extrapolate')
+            try:
+                mint = scipy.interpolate.interp1d(olddims[i], newa, kind=method, fill_value='extrapolate')
+            except ValueError:
+                import pdb; pdb.set_trace()
             newa = mint(dimlist[i])
 
         if ndims > 1:
