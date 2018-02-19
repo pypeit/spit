@@ -36,7 +36,7 @@ def generate_training_pngs(clobber=False):
         # Load
         data = spit_io.read_fits(flat_file)
         # Process
-        image = spit_p.process_image(data)
+        image = spit_p.process_image(data, debug=debug)
         # Flip around
         flip_images = spit_p.flips(image, flatten=False)
         # Write PNGs
@@ -49,6 +49,7 @@ def generate_training_pngs(clobber=False):
     for itype in ['arc','bias','standard','science']:
         files = glob.glob(spit_path+'/Kast/FITS/train/{:s}/0_*fits.gz'.format(itype))
         nfiles = len(files)
+        pdb.set_trace()
 
 #### ########################## #########################
 def main(flg):

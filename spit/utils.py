@@ -1,8 +1,10 @@
+""" Module for base-level methods for SPIT"""
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as n
 import scipy.interpolate
 import scipy.ndimage
+import pdb
 
 
 def congrid(a, newdims, method='linear', centre=False, minusone=False):
@@ -71,8 +73,11 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
         trorder = [ndims - 1] + list(range(ndims - 1))
         for i in range(ndims - 2, -1, -1):
             newa = newa.transpose(trorder)
+            try:
+                mint = scipy.interpolate.interp1d(olddims[i], newa, kind=method, fill_value='extrapolate')
+            except ValueError:
+                pdb.set_trace()
 
-            mint = scipy.interpolate.interp1d(olddims[i], newa, kind=method, fill_value='extrapolate')
             newa = mint(dimlist[i])
 
         if ndims > 1:
@@ -102,8 +107,7 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
         newa = scipy.ndimage.map_coordinates(a, newcoords)
         return newa
     else:
-        print
-        "Congrid error: Unrecognized interpolation type.\n", \
+        print("Congrid error: Unrecognized interpolation type.\n", \
         "Currently only \'neighbour\', \'nearest\',\'linear\',", \
-        "and \'spline\' are supported."
+        "and \'spline\' are supported.")
         return None

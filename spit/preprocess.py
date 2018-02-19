@@ -11,7 +11,7 @@ from spit import zscale as aut_z
 from spit import defs
 
 
-def process_image(image):
+def process_image(image, debug=False, min_rows=50):
     """ Process a single image
 
     Parameters
@@ -26,7 +26,10 @@ def process_image(image):
     """
     from spit.utils import congrid
     # Trim
-    image = trim_image(image, cutoff_percent=defs.cutoff_percent)
+    image = trim_image(image, cutoff_percent=defs.cutoff_percent, debug=debug)
+    # Check trimming
+    if image.shape[0] < min_rows:
+        pdb.set_trace()
 
     # Resize
     rimage = congrid(image.astype(float), (defs.image_height, defs.image_width))
@@ -114,20 +117,21 @@ def resize_image(image_data, sess):
     return padded_image
 
 
-def cutoff_forw(max_vals, cutoff_percent=1.15):
+def cutoff_forw(max_vals, med_max, med_perc=0.2, cutoff_percent=1.15):
     cutoff_point = 0
     for idx in range(1, len(max_vals)):
         prev_val = max_vals[idx - 1]
         curr_val = max_vals[idx]
 
-        if curr_val > (cutoff_percent * prev_val):
+        if (curr_val > (cutoff_percent * prev_val)) or (
+            np.abs(curr_val-med_max) < med_perc*med_max):
             cutoff_point = idx
             break
 
     return cutoff_point
 
 
-def cutoff_back(max_vals, cutoff_percent=1.15):
+def cutoff_back(max_vals, med_max, cutoff_percent=1.15, med_perc=0.2):
     """ Trim image from the top"""
     max_vals.reverse()
     cutoff_point = 0
@@ -135,14 +139,15 @@ def cutoff_back(max_vals, cutoff_percent=1.15):
         prev_val = max_vals[idx - 1]
         curr_val = max_vals[idx]
 
-        if curr_val > (cutoff_percent * prev_val):
+        if (curr_val > (cutoff_percent * prev_val)) or (
+            np.abs(curr_val-med_max) < med_perc*med_max):
             cutoff_point = idx
             break
 
     return cutoff_point
 
 
-def trim_image(image, ret_all=False, **kwargs):
+def trim_image(image, ret_all=False, debug=False, **kwargs):
     """ Trim down the image to the flux only region
     Handles overscan and vignetted regions
     """
@@ -159,9 +164,12 @@ def trim_image(image, ret_all=False, **kwargs):
     filtered_data = sigma_clip(image, sigma=3, axis=0)
     max_vals = np.max(filtered_data, axis=1)
 
+    # Calculate median (ignoring 0 values)
+    med_max = np.median(max_vals[max_vals > 0.])
+
     # Identify top and bottom
-    cutoff_f = cutoff_forw(max_vals, **kwargs)
-    cutoff_b = cutoff_back(max_vals, **kwargs)
+    cutoff_f = cutoff_forw(max_vals, med_max, **kwargs)
+    cutoff_b = cutoff_back(max_vals, med_max, **kwargs)
     #
     first = cutoff_f
     second = shape[0] - cutoff_b
@@ -173,39 +181,37 @@ def trim_image(image, ret_all=False, **kwargs):
         return image[first:second, :]
 
 
-def cutoff_forw(max_vals, cutoff_percent=1.10):
+def cutoff_forw(max_vals, med_max, cutoff_percent=1.10, med_perc=0.2):
     """ Trim image from the bottom
     max_vals : list
       Maximum value of "filtered" sigma_clipped data
     """
     cutoff_point = 0
-    prev_val = 0
-    curr_val = 0
     for idx in range(1,len(max_vals)):
         prev_val = max_vals[idx-1]
         curr_val = max_vals[idx]
 
-        if curr_val > (cutoff_percent * prev_val):
+        if (curr_val > (cutoff_percent * prev_val)) or (
+                    np.abs(curr_val-med_max) < med_perc*med_max):
             cutoff_point = idx
             break
 
     return cutoff_point
 
 
-def cutoff_back(max_vals, cutoff_percent=1.10):
+def cutoff_back(max_vals, med_max, cutoff_percent=1.10, med_perc=0.2):
     """ Trim image from the top
     max_vals : list
       Maximum value of "filtered" sigma_clipped data
     """
     max_vals = max_vals[::-1]
     cutoff_point = 0
-    prev_val = 0
-    curr_val = 0
     for idx in range(1,len(max_vals)):
         prev_val = max_vals[idx-1]
         curr_val = max_vals[idx]
 
-        if curr_val > (cutoff_percent * prev_val):
+        if (curr_val > (cutoff_percent * prev_val)) or (
+            np.abs(curr_val-med_max) < med_perc*med_max):
             cutoff_point = idx
             break
 
