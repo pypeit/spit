@@ -77,6 +77,7 @@ def main(flg):
     if flg & (2**0):
         generate_pngs('train')
         generate_pngs('test', regular=True)  # Also regularized
+        generate_pngs('validation', regular=True)  # Also regularized
 
     # Generate PNGs
     if flg & (2**1):
