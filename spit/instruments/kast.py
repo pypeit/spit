@@ -55,6 +55,10 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
             # Randomize, but use seeded to avoid new ones appearing!
             rand = rstate.rand(npull)
             srt = np.argsort(rand)
+            if len(np.unique(srt)) != npull:
+                pdb.set_trace()
+            if npull < nfiles:
+                pdb.set_trace()
             # Loop
             for kk in srt:
                 filen = files[kk]
@@ -66,9 +70,13 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
     # Sanity check
     if regular:
         for itype in ['flat', 'arc','bias','standard','science']:
-            outdir = outroot+'{:s}/'.format(itype)
-            files = glob.glob(outdir+'/*.png')
-            assert len(files) == 4*nflats
+            outroot = spit_path+'/Kast/PNG/{:s}/{:s}'.format(category, itype)
+            files = glob.glob(outroot+'/*.png')
+            try:
+                assert len(files) == 4*nflats
+            except AssertionError:
+                pdb.set_trace()
+
 
 #### ########################## #########################
 def main(flg):
@@ -77,6 +85,7 @@ def main(flg):
     if flg & (2**0):
         generate_pngs('train')
         generate_pngs('test', regular=True)  # Also regularized
+        generate_pngs('validation', regular=True)  # Also regularized
 
     # Generate PNGs
     if flg & (2**1):
