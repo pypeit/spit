@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np, os, sys
 
 from spit import image_loader as il
-from spit.main import predict_cls_test, cls_accuracy
+from spit.train import predict_cls_test, cls_accuracy
 from collections import Counter
 
 # Use PrettyTensor to simplify Neural Network construction.
