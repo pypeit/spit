@@ -55,10 +55,24 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
             # Randomize, but use seeded to avoid new ones appearing!
             rand = rstate.rand(npull)
             srt = np.argsort(rand)
+            #if len(np.unique(srt)) != npull:
+            #    pdb.set_trace()
+            #if npull < nfiles:
+            #    pdb.set_trace()
             # Loop
+            #save_files = []
             for kk in srt:
                 filen = files[kk]
+                #if step == 5:
+                #    print(kk, filen)
+                #save_files.append(filen)
                 spit_png.make_standard(filen, outdir, [2,-8], step, clobber=clobber)
+            # Check (Debugging)
+            #for ifile in save_files:
+            #    if 'may19_2015_r1' in ifile:
+            #        print(ifile)
+            #if step == 5:
+            #    pdb.set_trace()
             # Increment
             step += 1
             ntot += npull
@@ -66,9 +80,13 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
     # Sanity check
     if regular:
         for itype in ['flat', 'arc','bias','standard','science']:
-            outdir = outroot+'{:s}/'.format(itype)
-            files = glob.glob(outdir+'/*.png')
-            assert len(files) == 4*nflats
+            outroot = spit_path+'/Kast/PNG/{:s}/{:s}'.format(category, itype)
+            files = glob.glob(outroot+'/*.png')
+            try:
+                assert len(files) == 4*nflats
+            except AssertionError:
+                pdb.set_trace()
+
 
 #### ########################## #########################
 def main(flg):
