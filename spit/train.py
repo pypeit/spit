@@ -451,3 +451,8 @@ def run():
 
 
     session.close()
+
+# Command line execution
+if __name__ == '__main__':
+    run()
+
