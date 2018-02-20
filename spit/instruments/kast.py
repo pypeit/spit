@@ -55,14 +55,24 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
             # Randomize, but use seeded to avoid new ones appearing!
             rand = rstate.rand(npull)
             srt = np.argsort(rand)
-            if len(np.unique(srt)) != npull:
-                pdb.set_trace()
-            if npull < nfiles:
-                pdb.set_trace()
+            #if len(np.unique(srt)) != npull:
+            #    pdb.set_trace()
+            #if npull < nfiles:
+            #    pdb.set_trace()
             # Loop
+            #save_files = []
             for kk in srt:
                 filen = files[kk]
+                #if step == 5:
+                #    print(kk, filen)
+                #save_files.append(filen)
                 spit_png.make_standard(filen, outdir, [2,-8], step, clobber=clobber)
+            # Check (Debugging)
+            #for ifile in save_files:
+            #    if 'may19_2015_r1' in ifile:
+            #        print(ifile)
+            #if step == 5:
+            #    pdb.set_trace()
             # Increment
             step += 1
             ntot += npull

@@ -36,9 +36,11 @@ def make_standard(fits_file, outdir, root_idx, prefix, clobber=False, debug=Fals
     # Out_pref
     basename = os.path.basename(fits_file)
     out_pref = basename[root_idx[0]: root_idx[1]]
-    outfiles = glob.glob(outdir+'{:d}'.format(prefix)+'_'+out_pref+'*.png')
+    outfiles = glob.glob(outdir+'{:d}'.format(prefix)+'_'+out_pref+'_*.png')
     if (len(outfiles) == 4) & (not clobber):
         print("FITS file {:s} already processed".format(basename))
+        if ('may19_2015_r1' in basename) & (prefix==5):
+            pdb.set_trace()
         return
     else:
         print("Processing FITS file {:s}".format(basename))
