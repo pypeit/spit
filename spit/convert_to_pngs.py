@@ -4,32 +4,56 @@ Convert FITS files to PNGs
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as np, glob
+import os
 import scipy
+import pdb
+
 from astropy.io import fits
 from astropy.stats import sigma_clip
 
-from auto_type.image_loader import cutoff_back, cutoff_forw
+from spit import io as spit_io
+from spit import preprocess as spit_p
 
-# Out_pref
-basename = os.path.basename(flat_file)
-out_pref = basename[2:-8]
-outfiles = glob.glob(outdir+out_pref+'*.png')
-if (len(outfiles) == 4) & (not clobber):
-    print("FITS file {:s} already processed".format(basename))
-    continue
-else:
-    print("Processing FITS file {:s}".format(basename))
-# Load
-data = spit_io.read_fits(flat_file)
-# Process
-image = spit_p.process_image(data, debug=debug)
-# Flip around
-flip_images = spit_p.flips(image, flatten=False)
-# Write PNGs
-for img, suff in zip(flip_images, ['norm','vert','hor','horvert']):
-    outfile = outdir+out_pref+'_'+suff+'.png'
-    #
-    spit_io.write_array_to_png(img, outfile)
+
+def make_standard(fits_file, outdir, root_idx, prefix, clobber=False, debug=False):
+    """  Convert an input FITS file into a set of 4 PNGs
+      Normal, Vertical flip, Horizontal flip, both flips
+
+    Parameters
+    ----------
+    fits_file : str
+    outdir : str
+    root_idx : list
+      Indices defining the root name in basename for the eventual output name
+    prefix : int
+    clobber : bool, optional
+    debug : bool, optional
+
+    Returns
+    -------
+
+    """
+    # Out_pref
+    basename = os.path.basename(fits_file)
+    out_pref = basename[root_idx[0]: root_idx[1]]
+    outfiles = glob.glob(outdir+'{:d}'.format(prefix)+'_'+out_pref+'*.png')
+    if (len(outfiles) == 4) & (not clobber):
+        print("FITS file {:s} already processed".format(basename))
+        return
+    else:
+        print("Processing FITS file {:s}".format(basename))
+    # Load
+    data = spit_io.read_fits(fits_file)
+    # Process
+    image = spit_p.process_image(data, debug=debug)
+    # Flip around
+    flip_images = spit_p.flips(image, flatten=False)
+    # Write PNGs
+    for img, suff in zip(flip_images, ['norm','vert','hor','horvert']):
+        outfile = outdir+'{:d}'.format(prefix)+'_'+out_pref+'_'+suff+'.png'
+        #
+        spit_io.write_array_to_png(img, outfile)
+
 
 def convert_images(data_locations):
     """
