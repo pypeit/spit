@@ -37,20 +37,22 @@ class Classifier(object):
         print("Loading the Classifier: {:s}".format(croot))
         self.init_session()
         self.init_variables()
-        # Load
-        saver = tf.train.Saver()
-        saver.restore(sess=self.session, save_path=croot)
+        self.init_saver()
+        # Load?
+        if croot is not None:
+            self.saver.restore(sess=self.session, save_path=croot)
 
     def init_session(self):
         """ Initialize a Tensorflow session
         """
-        from spit import image_loader as il
-        self.x = tf.placeholder(tf.float32, shape=[None, il.img_size_flat], name='x')
-        x_image = tf.reshape(self.x, [-1, il.image_height, il.image_width, il.num_channels])
-        self.y_true = tf.placeholder(tf.float32, shape=[None, il.num_classes], name='y_true')
+        from spit import defs
+        self.x = tf.placeholder(tf.float32, shape=[None, defs.img_size_flat], name='x')
+        x_image = tf.reshape(self.x, [-1, defs.image_height, defs.image_width, defs.num_channels])
+        self.y_true = tf.placeholder(tf.float32, shape=[None, defs.num_classes], name='y_true')
         self.y_true_cls = tf.argmax(self.y_true, axis=1)
         x_pretty = pt.wrap(x_image)
 
+        # Architecture
         with tf.Graph().as_default(), pt.defaults_scope(activation_fn=tf.nn.relu):
             self.y_pred, loss = x_pretty. \
                 conv2d(kernel=5, depth=36, name='layer_conv1'). \
@@ -59,12 +61,12 @@ class Classifier(object):
                 max_pool(kernel=2, stride=2). \
                 flatten(). \
                 fully_connected(size=128, name='layer_fc1'). \
-                softmax_classifier(num_classes=il.num_classes, labels=self.y_true)
+                softmax_classifier(num_classes=defs.num_classes, labels=self.y_true)
 
-        optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
         self.y_pred_cls = tf.argmax(self.y_pred, axis=1)
-        correct_prediction = tf.equal(self.y_pred_cls, self.y_true_cls)
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        self.correct_prediction = tf.equal(self.y_pred_cls, self.y_true_cls)
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         self.session = tf.Session()
         # Return
         return
@@ -74,3 +76,46 @@ class Classifier(object):
         """
         self.session.run(tf.global_variables_initializer())
         return
+
+    def init_saver(self):
+        self.saver = tf.train.Saver()
+
+# Other architectures
+    """
+    with pt.defaults_scope(activation_fn=tf.nn.relu):
+        y_pred, loss = x_pretty.\
+            conv2d(kernel=5, depth=16, name='layer_conv1').\
+            max_pool(kernel=2, stride=2).\
+            conv2d(kernel=5, depth=36, name='layer_conv2').\
+            max_pool(kernel=2, stride=2).\
+            flatten().\
+            fully_connected(size=128, name='layer_fc1').\
+            softmax_classifier(num_classes=num_classes, labels=y_true)
+    """
+
+    """
+    with pt.defaults_scope(activation_fn=tf.nn.relu):
+        y_pred, loss = x_pretty.\
+            conv2d(kernel=5, depth=36, name='layer_conv1').\
+            conv2d(kernel=5, depth=64, name='layer_conv2').\
+            conv2d(kernel=5, depth=72, name='layer_conv2').\
+            conv2d(kernel=5, depth=102, name='layer_conv2').\
+            max_pool(kernel=2, stride=2).\
+            flatten().\
+            fully_connected(size=256, name='layer_fc1').\
+            fully_connected(size=128, name='layer_fc1').\
+            softmax_classifier(num_classes=num_classes, labels=y_true)
+    """
+
+    """
+    with pt.defaults_scope(activation_fn=tf.nn.relu):
+        y_pred, loss = x_pretty.\
+            conv2d(kernel=5, depth=64, name='layer_conv1').\
+            max_pool(kernel=2, stride=2).\
+            conv2d(kernel=5, depth=64, name='layer_conv2').\
+            max_pool(kernel=2, stride=2).\
+            flatten().\
+            fully_connected(size=256, name='layer_fc1').\
+            fully_connected(size=128, name='layer_fc2').\
+            softmax_classifier(num_classes=num_classes, labels=y_true)
+    """
