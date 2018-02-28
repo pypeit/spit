@@ -21,12 +21,14 @@ class Classifier(object):
         kwargs
         """
         # Init
-        if croot is None:
+        if croot == 'Kast':
             from pkg_resources import resource_filename
             kast_dir = resource_filename('spit', '/data/checkpoints/kast_original/')
             if not os.path.isdir(kast_dir):
                 raise IOError("kast_dir {:s} does not exist!".format(kast_dir))
             croot = os.path.join(kast_dir, 'best_validation')
+        elif croot is None:
+            pass
         else:
             import glob
             # Test
@@ -34,12 +36,12 @@ class Classifier(object):
             if len(files) == 0:
                 raise IOError("Bad croot to Classifier!")
         # Setup Tensorflow
-        print("Loading the Classifier: {:s}".format(croot))
         self.init_session()
         self.init_variables()
         self.init_saver()
         # Load?
         if croot is not None:
+            print("Loading the Classifier: {:s}".format(croot))
             self.saver.restore(sess=self.session, save_path=croot)
 
     def init_session(self):
