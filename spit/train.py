@@ -13,10 +13,10 @@ import prettytensor as pt
 # Some globals
 
 # The image batches that will be used in training sets
-train_batch_size = 10
+train_batch_size = 30
 
 # Split the data-set in batches of this size to limit RAM usage.
-batch_size = 30
+batch_size = 10
 
 # Best validation accuracy seen so far.
 best_val_accuracy = 0.0
