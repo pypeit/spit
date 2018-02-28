@@ -273,7 +273,7 @@ def print_versions():
     print("Prety Tensor: " + pt.__version__)
     print("Python: " + sys.version)
 
-def run(instrument):
+def run(instrument, num_iterations=10):
     from spit.images import Images
     from spit.classifier import Classifier
     print_versions()
@@ -293,9 +293,9 @@ def run(instrument):
 
     # Dataset sizes
     print("Size of:")
-    print("- Training-set:\t\t{}".format(len(images_train.images)))
-    print("- Validation-set:\t{}".format(len(images_val.images)))
-    print("- Test-set:\t\t{}".format(len(images_test.images)))
+    print("- Training-set:\t\t{}".format(images_train.images.shape[0]))
+    print("- Validation-set:\t{}".format(images_val.images.shape[0]))
+    print("- Test-set:\t\t{}".format(images_test.images.shape[0]))
 
 
     ########################################################################
@@ -313,7 +313,7 @@ def run(instrument):
     print_test_accuracy(classifier, images_test)
 
     # Perform the optimization
-    optimize(classifier, images_train, images_val, save_validation_path, num_iterations=10)
+    optimize(classifier, images_train, images_val, save_validation_path, num_iterations=num_iterations)
 
     # Print the test accuracy after 100 optimizations
     print("Accuracies after 10 iterations!")
