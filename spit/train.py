@@ -10,8 +10,6 @@ import pdb
 # Use PrettyTensor to simplify Neural Network construction.
 import prettytensor as pt
 
-from spit import defs
-
 # Some globals
 
 # The image batches that will be used in training sets
@@ -101,7 +99,7 @@ def predict_cls(classifier, images, labels, cls_true):
 
 def random_train_batch(images_train):
     # Number of images in the training-set.
-    num_images = len(images_train.images)
+    num_images = images_train.images.shape[0]
 
     # Create a random index.
     idx = np.random.choice(num_images,
