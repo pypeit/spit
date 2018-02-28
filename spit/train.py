@@ -154,8 +154,10 @@ def print_test_accuracy(classifier, images, show_example_errors=False,
     -------
 
     """
-    from spit.plots import plot_example_errors
-    from spit.plots import plot_confusion_matrix
+    # Hide plot imports
+    if show_example_errors or show_confusion_matrix:
+        from spit.plots import plot_example_errors
+        from spit.plots import plot_confusion_matrix
 
     # For all the images in the test-set,
     # calculate the predicted classes and whether they are correct.
