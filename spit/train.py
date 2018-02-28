@@ -16,7 +16,7 @@ import prettytensor as pt
 train_batch_size = 10
 
 # Split the data-set in batches of this size to limit RAM usage.
-batch_size = 10
+batch_size = 30
 
 # Best validation accuracy seen so far.
 best_val_accuracy = 0.0
@@ -350,5 +350,5 @@ def run(instrument, num_iterations=10):
 
 # Command line execution
 if __name__ == '__main__':
-    run('Kast', num_iterations=50)
+    run('Kast', num_iterations=20)
 
