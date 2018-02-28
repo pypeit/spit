@@ -350,5 +350,5 @@ def run(instrument, num_iterations=10):
 
 # Command line execution
 if __name__ == '__main__':
-    run('Kast', num_iterations=20)
+    run('Kast', num_iterations=1000)
 
