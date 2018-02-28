@@ -316,7 +316,7 @@ def run(instrument, num_iterations=10):
     optimize(classifier, images_train, images_val, save_validation_path, num_iterations=num_iterations)
 
     # Print the test accuracy after 100 optimizations
-    print("Accuracies after 10 iterations!")
+    print("Accuracies after {:d} iterations!".format(num_iterations))
     print_test_accuracy(classifier, images_test)
 
     # Save the model after it's done training
@@ -342,7 +342,7 @@ def run(instrument, num_iterations=10):
     # Restore done Variables
     classifier.saver.restore(sess=classifier.session, save_path=save_done_path)
 
-    print("Done case (test)!")
+    print("Last case [aka done] (test)!")
     print_test_accuracy(classifier, images_test)
 
 
