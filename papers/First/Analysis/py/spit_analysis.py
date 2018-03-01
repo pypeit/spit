@@ -11,13 +11,11 @@ from pkg_resources import resource_filename
 
 from astropy.io import fits
 
-from spit import preprocess as spit_p
 from spit import classify as spit_c
 from spit.classifier import Classifier
 from spit import io as spit_io
-from spit import image_loader as spit_il
 
-from linetools import utils as ltu
+from spit import preprocess as spit_p
 
 # Local
 #sys.path.append(os.path.abspath("../Analysis/py"))
@@ -25,9 +23,9 @@ from linetools import utils as ltu
 
 
 def chk_test():
-    from scipy import misc
     # Load SPIT
     classifier = Classifier.load_kast()
+    pdict = spit_p.original_preproc_dict()
 
     # Images
     path = os.getenv('SPIT_DATA')+'/Kast/FITS/test/'
@@ -40,12 +38,13 @@ def chk_test():
         for ifile in files:
             # Load
             data = spit_io.read_fits(ifile)
-            images_array = spit_p.flattened_array(data)
-            #
+            images_array = spit_p.flattened_array(data, pdict)
+            # Prediction
             prediction, results = spit_c.get_prediction(images_array, classifier)
+            pred_type = classifier.classify_dict[prediction]
             print("{:s}: Input image {:s} is classified as a {:s}".format(itype, os.path.basename(ifile)[:-7],
-                                                                spit_il.Frames(prediction).name), results)
-            if itype != spit_il.Frames(prediction).name.lower():
+                                                                pred_type), results)
+            if itype != pred_type:
                 pdb.set_trace()
 
 

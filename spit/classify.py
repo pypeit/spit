@@ -2,8 +2,6 @@
 import numpy as np, os, sys
 import pdb
 
-from spit import image_loader as spit_il
-from spit import defs
 from collections import Counter
 
 # Use PrettyTensor to simplify Neural Network construction.
@@ -29,7 +27,7 @@ def predict_one_image(images, classifier):
 
     # Allocate an array for the predicted labels which
     # will be calculated in batches and filled into this array.
-    pred_labels = np.zeros(shape=(num_images, defs.num_classes),
+    pred_labels = np.zeros(shape=(num_images, len(classifier.label_dict)),
                        dtype=np.float)
     
     # Create a feed-dict with the images between index i and j.
@@ -75,11 +73,9 @@ def get_prediction(images_array, classifier, use_heuristics=False):
     return value, results
 
 
-def classify_me(image_file, classifier_root=None, verbose=False):
-    from spit.classifier import Classifier
+def classify_me(image_file, classifier, verbose=False):
+    from spit import image_loader as spit_il
 
-    # Generate a Classifier
-    classifier = Classifier(classifier_root)
 
     # Image array (4 flips)
     images_array = spit_il.load_images_arr(image_file)

@@ -10,7 +10,7 @@ import pdb
 from spit import zscale as aut_z
 
 
-def flattened_array(image, **kwargs):
+def flattened_array(image, pdict, **kwargs):
     """ Process a single image and return an image
     with flips and flattened
 
@@ -24,7 +24,7 @@ def flattened_array(image, **kwargs):
     images : ndarray, dtype=uint8
        2D trimmed, resized, scaled image with flips
     """
-    zimage = process_image(image, **kwargs)
+    zimage = process_image(image, pdict, **kwargs)
     image, ver_image, hor_image, hor_ver_image = flips(zimage)
 
     # Flatten
