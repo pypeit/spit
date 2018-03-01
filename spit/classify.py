@@ -1,5 +1,6 @@
 """ Module to run classification of images """
 import numpy as np, os, sys
+import pdb
 
 from spit import image_loader as spit_il
 from spit import defs
@@ -40,22 +41,37 @@ def predict_one_image(images, classifier):
     return pred_labels
 
 
-def get_prediction(images_array, classifier):
-    """ """
+def get_prediction(images_array, classifier, use_heuristics=False):
+    """
+
+    Returns
+    -------
+    value : int
+      Most common value or -1, if it is not the majority
+    results : list
+      All of the values for each flipped image
+    """
+    # Classify all 4
     results = []
     results.append(np.argmax(predict_one_image(images_array[0:1,:], classifier)))
     results.append(np.argmax(predict_one_image(images_array[1:2,:], classifier)))
     results.append(np.argmax(predict_one_image(images_array[2:3,:], classifier)))
     results.append(np.argmax(predict_one_image(images_array[3:4,:], classifier)))
     resultsCounter = Counter(results)
-    
-    if results.count(2) >= 2:
-        value = 2
-    elif results.count(1) >= 2:
-        value = 1
-    else:
-        value, _ = resultsCounter.most_common()[0]
-    
+
+    # Heuristics
+    if use_heuristics:
+        if results.count(2) >= 2:
+            value = 2
+        elif results.count(1) >= 2:
+            value = 1
+        else:
+            value, _ = resultsCounter.most_common()[0]
+    else:  # Majority rules
+        value, n_occur = resultsCounter.most_common()[0]
+        if n_occur <= 2:
+            value = -1
+    # Return
     return value, results
 
 

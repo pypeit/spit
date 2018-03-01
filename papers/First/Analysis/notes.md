@@ -6,6 +6,7 @@ Image mis-classification:
 * Twilight flat was 1/2 science, 1/2 flat
     * Several sky lines evident
     * 0_xavier_images_raw_2008sep25_Raw_r10007.fits
+    * And one other
 * Bias frame 1/2 bias, 1/2 arc
     * 0_oct6_2016_r20.fits_rotated.fits
     * junk bias frame!

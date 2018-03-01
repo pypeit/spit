@@ -17,6 +17,7 @@ from spit import preprocess as spit_pre
 sys.dont_write_bytecode = True
 
 class Frames(Enum):
+    UNKNOWN     = -1  # Only for classification
     BIAS        = 0
     SCIENCE     = 1
     STANDARD    = 2
