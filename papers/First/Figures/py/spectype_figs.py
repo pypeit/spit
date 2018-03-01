@@ -252,6 +252,7 @@ def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
     from sklearn.metrics import confusion_matrix
     from spit import defs
     from spit.image_loader import label_dict
+    from spit import io as spit_io
     num_classes = defs.num_classes
 
     # Init
@@ -265,7 +266,7 @@ def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
 
         # Load images
         print("Loading images..")
-        images = Images('Kast_test')
+        images = Images('Kast_test')#, debug=True)
 
         # Run me
         print("Classifying..")
@@ -273,7 +274,7 @@ def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
                             show_confusion_matrix=False, show_example_errors=False)
         cls_true = images.cls
         print("Done")
-        pdb.set_trace()
+        spit_io.write_classifier_predictions(classifier, 'f_tst_acc.json')
 
         # Get the confusion matrix using sklearn.
         cm = confusion_matrix(y_true=cls_true,

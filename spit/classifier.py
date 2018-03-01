@@ -93,6 +93,7 @@ class Classifier(object):
     def init_saver(self):
         self.saver = tf.train.Saver()
 
+
 # Other architectures
     """
     with pt.defaults_scope(activation_fn=tf.nn.relu):

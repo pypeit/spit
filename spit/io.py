@@ -1,6 +1,8 @@
 # I/O for SPIT
 from __future__ import print_function, absolute_import, division, unicode_literals
 
+import pdb
+
 
 def write_array_to_png(img, outfile, verbose=False):
     """ Write input array to PNG
@@ -32,3 +34,16 @@ def read_fits(image_file):
     # Return
     return image
 
+
+def write_classifier_predictions(classifier, outfile):
+    import json
+
+    def native(value):
+        converted_value = getattr(value, "tolist", lambda x=value: x)()
+        return converted_value
+
+    pdict = {}
+    pdict['predictions'] = native(classifier.cls_pred)
+
+    with open(outfile, 'wt') as fh:
+        json.dump(pdict, fh)

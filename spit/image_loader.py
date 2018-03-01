@@ -81,10 +81,13 @@ def load_linear_pngs(instr, data_type, debug=False):
 
     for index, location in enumerate(data_locations):
         images = glob.glob(location)
+        images.sort() # So that the ordering is the same each time
         image_array = []
         image_labels = []
         image_filenames = []
-        for image_file in images:
+        for kk, image_file in enumerate(images):
+            if debug and (kk == 10):
+                break
             image_data = misc.imread(image_file, mode='L')
             padded_image = image_data.flatten()
             image_array.append(padded_image)

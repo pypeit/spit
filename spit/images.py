@@ -40,6 +40,6 @@ class Images(object):
         instr, itype = img_type.split('_')
 
         # Load
-        self.images, self.cls, self.labels, self.filenames = load_linear_pngs(instr, itype)
+        self.images, self.cls, self.labels, self.filenames = load_linear_pngs(instr, itype, **kwargs)
 
 
