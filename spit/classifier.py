@@ -7,6 +7,8 @@ from pkg_resources import resource_filename
 import tensorflow as tf
 import prettytensor as pt
 
+from spit import labels as spit_lbls
+
 
 class Classifier(object):
     """ Class to hold a Tensorflow architecture
@@ -20,6 +22,9 @@ class Classifier(object):
         croot = arch_path+'best_validation'
         # Init
         slf = cls(croot=croot)
+        # Tack on label dict
+        slf.label_dict = spit_lbls.kast_label_dict()
+        slf.classify_dict = spit_lbls.kast_classify_dict(slf.label_dict)
         return slf
 
     def __init__(self, croot=None, **kwargs):

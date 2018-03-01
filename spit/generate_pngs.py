@@ -15,7 +15,7 @@ from spit import io as spit_io
 from spit import preprocess as spit_p
 
 
-def make_standard(fits_file, outdir, root_idx, prefix, clobber=False, debug=False):
+def make_standard(fits_file, outdir, root_idx, prefix, pdict, clobber=False, debug=False):
     """  Convert an input FITS file into a set of 4 PNGs
       Normal, Vertical flip, Horizontal flip, both flips
 
@@ -26,6 +26,8 @@ def make_standard(fits_file, outdir, root_idx, prefix, clobber=False, debug=Fals
     root_idx : list
       Indices defining the root name in basename for the eventual output name
     prefix : int
+    pdict : dict
+      Pre-processing dict
     clobber : bool, optional
     debug : bool, optional
 
@@ -46,7 +48,7 @@ def make_standard(fits_file, outdir, root_idx, prefix, clobber=False, debug=Fals
     print("Processing FITS file {:s}".format(basename))
     data = spit_io.read_fits(fits_file)
     # Process
-    image = spit_p.process_image(data, debug=debug)
+    image = spit_p.process_image(data, pdict, debug=debug)
     # Flip around
     flip_images = spit_p.flips(image)
     # Write PNGs

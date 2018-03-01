@@ -9,8 +9,6 @@ from scipy import misc
 import pdb
 
 from spit.utils import one_hot_encoded
-from spit import io as spit_io
-from spit import preprocess as spit_pre
 
 sys.dont_write_bytecode = True
 
@@ -114,45 +112,12 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
     # Get the class-numbers for each image. Convert to numpy-array.
     cls = np.array(labels)
 
-    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=5), filenames
+    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=len(label_dict)), \
+           filenames
 
-def load_images():
-    data_locations = [ \
-        "images/bias/linear*", \
-        "images/science/linear*", \
-        "images/standard/linear*", \
-        "images/arc/linear*", \
-        "images/flat/linear*"]
 
-    raw_data = []
-    labels = []
-    filenames = []
 
-    for index, location in enumerate(data_locations):
-        images = glob.glob(location)
-        image_array = []
-        image_labels = []
-        image_filenames = []
-        for image_file in images:
-            image_data = misc.imread(image_file, mode='L')
-            padded_image = image_data.flatten()
-
-            image_array.append(padded_image)
-            image_labels.append(index)
-            image_filenames.append(image_file)
-
-        raw_data = raw_data + image_array
-        labels = labels + image_labels
-        filenames = filenames + image_filenames
-
-    # Get the raw images.
-    raw_images = np.array(raw_data)
-
-    # Get the class-numbers for each image. Convert to numpy-array.
-    cls = np.array(labels)
-
-    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
-
+'''
 def load_all_data():
     data_locations = [ \
         "images/bias/linear*", \
@@ -235,8 +200,9 @@ def load_all_data():
     cls = np.array(labels)
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+'''
 
-
+''' 
 def load_images_arr(image_file, outfile=None):
     """ Convert an input FITS file into 4 flattened arrays
     having flipped it around
@@ -370,3 +336,4 @@ def load_data_cropped200x600(data_type, img_path='/soe/vjankov/scratchdisk/'):
     cls = np.array(labels)
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+'''

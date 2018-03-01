@@ -8,10 +8,9 @@ import tensorflow as tf
 import pdb
 
 from spit import zscale as aut_z
-from spit import defs
 
 
-def flattened_array(image, debug=False, **kwargs):
+def flattened_array(image, **kwargs):
     """ Process a single image and return an image
     with flips and flattened
 
@@ -40,13 +39,15 @@ def flattened_array(image, debug=False, **kwargs):
     return images_array
 
 
-def process_image(image, debug=False, min_rows=50):
+def process_image(image, preproc_dict, debug=False, min_rows=50):
     """ Process a single image
 
     Parameters
     ----------
     image : ndarray
       Typically the RAW frame read from disk
+    preproc_dict : dict
+      Parameters for pre-processing
 
     Returns
     -------
@@ -55,13 +56,14 @@ def process_image(image, debug=False, min_rows=50):
     """
     from spit.utils import congrid
     # Trim
-    image = trim_image(image, cutoff_percent=defs.cutoff_percent, debug=debug)
+    image = trim_image(image, cutoff_percent=preproc_dict['cutoff_percent'], debug=debug)
     # Check trimming
     if image.shape[0] < min_rows:
         pdb.set_trace()
 
     # Resize
-    rimage = congrid(image.astype(float), (defs.image_height, defs.image_width))
+    rimage = congrid(image.astype(float), (preproc_dict['image_height'],
+                                           preproc_dict['image_width']))
 
     # zscale
     zimage = zscale(rimage)
@@ -95,13 +97,17 @@ def flips(image):
     #pil_image.transpose(Image.FLIP_TOP_BOTTOM)
     ver_image = np.array(pil_image.transpose(Image.FLIP_TOP_BOTTOM))
     hor_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT))
-    hor_ver_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM))
+    hor_ver_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT).transpose(
+        Image.FLIP_TOP_BOTTOM))
 
     # Return
     return image, ver_image, hor_image, hor_ver_image
 
 
-def resize_image(image_data, sess):
+'''
+def old_resize_image(image_data, sess):
+    # CURRENTLY DEFUNCT
+    #   INCLUDED PADDING
     # Convert the image data to an int
     image_data = image_data.astype(int)
     height = image_data.shape[0]
@@ -131,6 +137,7 @@ def resize_image(image_data, sess):
     padded_image = np.pad(new_image, pad_width=npad, mode='constant', constant_values=defs.pad_const)
     
     return padded_image
+'''
 
 
 def cutoff_forw(max_vals, med_max, med_perc=0.2, cutoff_percent=1.15):
@@ -269,3 +276,35 @@ def zscale(image, chk=False, contrast=0.25, only_range=False):
     return zimage
 
 
+def original_preproc_dict():
+    ########################################################################
+    # Various constants for the size of the images.
+    # Use these constants in your own program.
+    preproc_dict = {}
+
+    # Width and height of each image.
+    # The height of an image
+    preproc_dict['image_height'] = 210
+
+    # The width of an image
+    preproc_dict['image_width'] = 650
+
+    # Length of an image when flattened to a 1-dim array.
+    preproc_dict['img_size_flat'] = preproc_dict['image_height'] * preproc_dict['image_width']
+
+    # Tuple with height and width of images used to reshape arrays.
+    preproc_dict['img_shape'] = (preproc_dict['image_height'],
+                                 preproc_dict['image_width'])
+
+    # Number of channels in each image, 3 channels: Red, Green, Blue.
+    preproc_dict['num_channels'] = 1
+
+    # The padding value for the padded image
+    preproc_dict['pad_const'] = 0
+
+    # The overscan cutoff percent difference. If the running average is different
+    # from the previous running average by this much, then detect an overscan region
+    preproc_dict['cutoff_percent'] = 1.10
+
+    # Return
+    return preproc_dict

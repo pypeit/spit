@@ -9,6 +9,7 @@ import os
 import pdb
 
 from spit import generate_pngs as spit_png
+from spit import preprocess
 
 spit_path = os.getenv('SPIT_DATA')
 
@@ -24,6 +25,10 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
     -------
 
     """
+    # Pre-processing dict
+    pdict = preprocess.original_preproc_dict()
+
+    #
     rstate = np.random.RandomState(seed)
     outroot = spit_path+'/Kast/PNG/{:s}/'.format(category)
 
@@ -66,7 +71,7 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
                 #if step == 5:
                 #    print(kk, filen)
                 #save_files.append(filen)
-                spit_png.make_standard(filen, outdir, [2,-8], step, clobber=clobber)
+                spit_png.make_standard(filen, outdir, [2,-8], step, pdict, clobber=clobber)
             # Check (Debugging)
             #for ifile in save_files:
             #    if 'may19_2015_r1' in ifile:
