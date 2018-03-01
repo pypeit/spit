@@ -2,11 +2,9 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # Requirements:
 import numpy as np, glob, os, sys
-from enum import Enum
 
 from scipy import misc
 
-from collections import OrderedDict
 
 import pdb
 
@@ -16,29 +14,16 @@ from spit import preprocess as spit_pre
 
 sys.dont_write_bytecode = True
 
-class Frames(Enum):
-    UNKNOWN     = -1  # Only for classification
-    BIAS        = 0
-    SCIENCE     = 1
-    STANDARD    = 2
-    ARC         = 3
-    FLAT        = 4
-
-# Mapping from image type to index
-label_dict = OrderedDict()
-label_dict['bias_label']=0
-label_dict['science_label']=1
-label_dict['standard_label']=2
-label_dict['arc_label']=3
-label_dict['flat_label']=4
 
 spit_path = os.getenv('SPIT_DATA')
 
-def load_linear_pngs(instr, data_type, debug=False, single_copy=False):
+def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False):
     """ Load PNGs
 
     Parameters
     ----------
+    label_dict : dict
+      Sets label values
     single_copy : bool, optional
       Only grab one copy (with flips) of each image
     """

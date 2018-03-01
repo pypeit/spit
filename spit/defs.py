@@ -1,6 +1,7 @@
 # Definitions for SPIT
 from __future__ import print_function, absolute_import, division, unicode_literals
 
+
 ########################################################################
 # Various constants for the size of the images.
 # Use these constants in your own program.
@@ -32,5 +33,15 @@ pad_const = 0
 cutoff_percent = 1.10
 
 ########################################################################
+
+
+def standard():
+    class Frames(Enum):
+        UNKNOWN     = -1  # Only for classification
+        BIAS        = 0
+        SCIENCE     = 1
+        STANDARD    = 2
+        ARC         = 3
+        FLAT        = 4
 
 
