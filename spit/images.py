@@ -33,6 +33,8 @@ class Images(object):
         # Check
         if img_type not in['Kast_train', 'Kast_test', 'Kast_validation']:
             raise IOError('Not ready for img_type: {:s}'.format(img_type))
+        else:
+            print("Loading the {:s} images..".format(img_type))
 
         # Parse
         instr, itype = img_type.split('_')

@@ -250,9 +250,9 @@ def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
     from spit.train import print_test_accuracy
     from spit.images import Images
     from sklearn.metrics import confusion_matrix
-    from spit import preprocess
+    from spit import defs
     from spit.image_loader import label_dict
-    num_classes = preprocess.num_classes
+    num_classes = defs.num_classes
 
     # Init
     if outfile is None:
@@ -260,16 +260,20 @@ def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
 
     if cm is None:
         # Load classifier and initialize
-        classifier = Classifier(resource_filename('spit', '/data/checkpoints/kast_original/best_validation'))
+        #classifier = Classifier(resource_filename('spit', '/data/checkpoints/kast_original/best_validation'))
+        classifier = Classifier.load_kast()
 
         # Load images
-        images = Images('kast_test_data')
+        print("Loading images..")
+        images = Images('Kast_test')
 
         # Run me
+        print("Classifying..")
         print_test_accuracy(classifier, images,
                             show_confusion_matrix=False, show_example_errors=False)
-
         cls_true = images.cls
+        print("Done")
+        pdb.set_trace()
 
         # Get the confusion matrix using sklearn.
         cm = confusion_matrix(y_true=cls_true,

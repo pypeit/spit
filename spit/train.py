@@ -181,6 +181,7 @@ def print_test_accuracy(classifier, images, show_example_errors=False,
         print("Confusion Matrix:")
         plot_confusion_matrix(images, classifier)
 
+
 ########################
 # OPTIMIZATION FUNCTION
 ########################

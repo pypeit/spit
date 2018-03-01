@@ -7,9 +7,20 @@ from pkg_resources import resource_filename
 import tensorflow as tf
 import prettytensor as pt
 
+
 class Classifier(object):
     """ Class to hold a Tensorflow architecture
     """
+
+    @classmethod
+    def load_kast(cls, arch_path=None):
+        if arch_path is None:
+            arch_path = os.getenv('SPIT_DATA')+'/Kast/checkpoints/'
+        # Grab best
+        croot = arch_path+'best_validation'
+        # Init
+        slf = cls(croot=croot)
+        return slf
 
     def __init__(self, croot=None, **kwargs):
         """

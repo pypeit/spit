@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 import pdb
 
-from spit.classify import one_hot_encoded
+from spit.utils import one_hot_encoded
 from spit import io as spit_io
 from spit import preprocess as spit_pre
 
