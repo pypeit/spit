@@ -16,19 +16,20 @@ from spit.classifier import Classifier
 from spit import io as spit_io
 
 from spit import preprocess as spit_p
-
 # Local
 #sys.path.append(os.path.abspath("../Analysis/py"))
 #import coshalo_lls as chlls
 
 
-def chk_test():
+def chk_test_images():
     # Load SPIT
     classifier = Classifier.load_kast()
     pdict = spit_p.original_preproc_dict()
 
     # Images
     path = os.getenv('SPIT_DATA')+'/Kast/FITS/test/'
+    all_files, true_values, predicted_values = [], [], []
+
     for itype in ['flat', 'arc', 'bias','standard','science']:
         # Grab the names
         files = glob.glob(path+'/{:s}/0_*fits.gz'.format(itype))
@@ -44,8 +45,20 @@ def chk_test():
             pred_type = classifier.classify_dict[prediction]
             print("{:s}: Input image {:s} is classified as a {:s}".format(itype, os.path.basename(ifile)[:-7],
                                                                 pred_type), results)
-            if itype != pred_type:
-                pdb.set_trace()
+            # Save
+            all_files.append(os.path.basename(ifile))
+            predicted_values.append(int(prediction))
+            true_values.append(int(classifier.label_dict[itype+'_label']))
+            #if itype != pred_type:
+            #    pdb.set_trace()
+    # Write
+    odict = {}
+    odict['predictions'] = predicted_values
+    odict['true'] = true_values
+    odict['files'] = all_files
+
+    with open('chk_test_images.json', 'wt') as fh:
+        json.dump(odict, fh)
 
 
 #### ########################## #########################
@@ -53,7 +66,7 @@ def main(flg_anly):
 
     # Spectral images
     if flg_anly & (2**0):
-        chk_test()
+        chk_test_images()
 
 
 
