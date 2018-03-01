@@ -117,11 +117,11 @@ def mktab_images(outfil='tab_images.tex', sub=False):
     tbfil.write('\\begin{deluxetable}{lccccc}\n')
     # tbfil.write('\\rotate\n')
     tbfil.write('\\tablewidth{0pc}\n')
-    tbfil.write('\\tablecaption{Training Set\\label{tab:train}}\n')
+    tbfil.write('\\tablecaption{Training Set\\label{tab:images}}\n')
     tbfil.write('\\tabletypesize{\\small}\n')
     tbfil.write('\\tablehead{\\colhead{Type?} & \\colhead{Date} \n')
     tbfil.write('& \\colhead{Frame} \n')
-    tbfil.write('& \\colhead{Use} \n')
+    tbfil.write('& \\colhead{Usage} \n')
     tbfil.write('} \n')
 
     tbfil.write('\\startdata \n')
