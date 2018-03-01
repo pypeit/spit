@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # Requirements:
 import numpy as np, glob, os, sys
-from astropy.io import fits
-from PIL import Image
 from enum import Enum
 
 from scipy import misc
@@ -12,10 +10,9 @@ from collections import OrderedDict
 
 import pdb
 
-from spit.preprocess import trim_image
-from spit.preprocess import zscale
-from spit.preprocess import one_hot_encoded
-from spit.utils import congrid
+from spit.classify import one_hot_encoded
+from spit import io as spit_io
+from spit import preprocess as spit_pre
 
 sys.dont_write_bytecode = True
 
@@ -25,33 +22,6 @@ class Frames(Enum):
     STANDARD    = 2
     ARC         = 3
     FLAT        = 4
-
-########################################################################
-# Various constants for the size of the images.
-# Use these constants in your own program.
-
-# Width and height of each image.
-# The height of an image
-image_height = 210
-
-# The width of an image
-image_width = 650
-
-# Length of an image when flattened to a 1-dim array.
-img_size_flat = image_height * image_width
-
-# Tuple with height and width of images used to reshape arrays.
-img_shape = (image_height, image_width)
-
-# Number of channels in each image, 1 channel since it's a Gray image
-num_channels = 1
-
-# Number of classes.
-num_classes = 5
-
-# The overscan cutoff percent difference. If the running average is different
-# from the previous running average by this much, then detect an overscan region
-cutoff_percent = 1.10
 
 # Mapping from image type to index
 label_dict = OrderedDict()
@@ -282,39 +252,113 @@ def load_images_arr(image_file, outfile=None):
     names = basename.split(".")
     file_root = names[0]
 
-    # Open the fits file
-    fits_f = fits.open(image_file, 'readonly')
-    hdu = fits_f[0]
-    image = hdu.data
-    shape = image.shape
+    # Load FITS
+    image = spit_io.read_fits(image_file)
 
-    # Trim
-    image = trim_image(image, cutoff_percent=cutoff_percent)
+    # Pre-process
+    zimage = spit_pre.process_image(image)
 
-    # Resize
-    rimage = congrid(image.astype(float), (image_height, image_width))
-
-    # zscale
-    zimage = zscale(rimage)
-
-    # Load into PIL
-    pil_image = Image.fromarray(zimage)
+    # PNG?
     if outfile is not None:
-        pil_image.save(outfile)
-
-    # Generate flipped images 
-    pil_image.transpose(Image.FLIP_TOP_BOTTOM)
-    ver_image = np.array(pil_image.transpose(Image.FLIP_TOP_BOTTOM))
-    hor_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT))
-    hor_ver_image = np.array(pil_image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM))
-
-    # Add flipped images to an array
-    im_array = []
-    im_array.append(zimage.flatten())
-    im_array.append(ver_image.flatten())
-    im_array.append(hor_image.flatten())
-    im_array.append(hor_ver_image.flatten())
-    images_array = np.array(im_array)
+        spit_io.write_array_to_png(zimage, outfile)
 
     return images_array
 
+
+def load_data_cropped200x600(data_type, img_path='/soe/vjankov/scratchdisk/'):
+    image_data = {}
+    """
+    a)
+    Load the data from the filenames stored in the data_locations 
+
+    b)
+    Add 0 padding to each image. The padding is 2112 pixels width and height
+    The 2112 is the widest pixel form the dataset
+
+    c)
+    Add labels for each image based on the folder they are coming form
+    This is the label names and values
+
+    Bias = 0
+    Science = 1
+    Arc = 2
+    Flat = 3
+
+    d)
+    Construct a dictionary with the following properties:
+        raw_data = the flattened 2112 np array with raw pixel values
+        labels = the corresponding labels for each data element
+        filename = the corresponding filename
+
+    """
+    # Define the image locations
+    if data_type == "train_data":
+        load_batch_size = 5400
+
+        data_locations = [ \
+            img_path + "viktor_astroimage/bias_train/*", \
+            img_path + "viktor_astroimage/science_train/*", \
+            img_path + "viktor_astroimage/standard_train/*", \
+            img_path + "viktor_astroimage/arc_train/*", \
+            img_path + "viktor_astroimage/flat_train/*"]
+
+    elif data_type == "test_data":
+        load_batch_size = 1650
+
+        data_locations = [ \
+            img_path + "viktor_astroimage/bias_test/*", \
+            img_path + "viktor_astroimage/science_test/*", \
+            img_path + "viktor_astroimage/standard_test/*", \
+            img_path + "viktor_astroimage/arc_test/*", \
+            img_path + "viktor_astroimage/flat_test/*"]
+
+    elif data_type == "validation_data":
+        load_batch_size = 1350
+        data_locations = [ \
+            img_path + "viktor_astroimage/bias_validation/*", \
+            img_path + "viktor_astroimage/science_validation/*", \
+            img_path + "viktor_astroimage/standard_validation/*", \
+            img_path + "viktor_astroimage/arc_validation/*", \
+            img_path + "viktor_astroimage/flat_validation/*"]
+
+    # Construct the dict arrays
+    raw_data = []
+    labels = []
+    filenames = []
+
+    for index, location in enumerate(data_locations):
+        images = glob.glob(location)
+        image_array = []
+        image_labels = []
+        image_filenames = []
+        for image_file in images:
+            hdulist = fits.open(image_file)
+            image_data = hdulist[0].data
+            padded_image = image_data.flatten()
+
+            image_array.append(padded_image)
+            image_labels.append(index)
+            image_filenames.append(image_file)
+
+        """
+        while len(image_array) < load_batch_size:
+            image_array = image_array + image_array
+            image_labels = image_labels + image_labels
+            image_filenames = image_filenames + image_filenames
+
+        raw_data = raw_data + image_array[:load_batch_size]
+        labels = labels + image_labels[:load_batch_size]
+        filenames = filenames + image_filenames[:load_batch_size]
+        """
+
+        raw_data = raw_data + image_array
+        labels = labels + image_labels
+        filenames = filenames + image_filenames
+
+    # Get the raw images.
+    raw_images = np.array(raw_data)
+
+    # Get the class-numbers for each image. Convert to numpy-array.
+    cls = np.array(labels)
+
+    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames

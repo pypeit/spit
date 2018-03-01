@@ -446,7 +446,7 @@ def run():
     # Restore best Varibles
     saver.restore(sess=session, save_path=save_done_path)
 
-    print("Print Validation case accuracies!")
+    print("Print test case accuracies!")
     print_test_accuracy()
 
 
