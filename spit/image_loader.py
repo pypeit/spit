@@ -33,13 +33,23 @@ label_dict['flat_label']=4
 
 spit_path = os.getenv('SPIT_DATA')
 
-def load_linear_pngs(instr, data_type, debug=False):
+def load_linear_pngs(instr, data_type, debug=False, single_copy=False):
+    """ Load PNGs
+
+    Parameters
+    ----------
+    single_copy : bool, optional
+      Only grab one copy (with flips) of each image
+    """
     image_data = {}
 
     # Define the image locations
     data_locations = []
     for itype in ['flat', 'arc', 'bias','standard','science']:
-        data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/*png'.format(data_type, itype))
+        if single_copy:
+            data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/0_*png'.format(data_type, itype))
+        else:
+            data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/*png'.format(data_type, itype))
 
     '''
     if data_type == "train_data":

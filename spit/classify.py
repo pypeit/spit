@@ -41,6 +41,7 @@ def predict_one_image(images, classifier):
 
 
 def get_prediction(images_array, classifier):
+    """ """
     results = []
     results.append(np.argmax(predict_one_image(images_array[0:1,:], classifier)))
     results.append(np.argmax(predict_one_image(images_array[1:2,:], classifier)))
@@ -55,7 +56,8 @@ def get_prediction(images_array, classifier):
     else:
         value, _ = resultsCounter.most_common()[0]
     
-    return value
+    return value, results
+
 
 def classify_me(image_file, classifier_root=None, verbose=False):
     from spit.classifier import Classifier
@@ -63,17 +65,17 @@ def classify_me(image_file, classifier_root=None, verbose=False):
     # Generate a Classifier
     classifier = Classifier(classifier_root)
 
-    # Image array
+    # Image array (4 flips)
     images_array = spit_il.load_images_arr(image_file)
 
     # Predict
-    prediction = get_prediction(images_array, classifier)
+    prediction, results = get_prediction(images_array, classifier)
     if verbose:
         print("Input image {:s} is classified as a {:s}".format(image_file,
                                                                 spit_il.Frames(prediction).name))
 
     # Return
-    return spit_il.Frames(prediction).name
+    return spit_il.Frames(prediction).name, results
 
 
 

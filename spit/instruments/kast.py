@@ -8,7 +8,7 @@ import glob
 import os
 import pdb
 
-from spit import convert_to_pngs as spit_png
+from spit import generate_pngs as spit_png
 
 spit_path = os.getenv('SPIT_DATA')
 

@@ -42,14 +42,13 @@ def make_standard(fits_file, outdir, root_idx, prefix, clobber=False, debug=Fals
         if ('may19_2015_r1' in basename) & (prefix==5):
             pdb.set_trace()
         return
-    else:
-        print("Processing FITS file {:s}".format(basename))
     # Load
+    print("Processing FITS file {:s}".format(basename))
     data = spit_io.read_fits(fits_file)
     # Process
     image = spit_p.process_image(data, debug=debug)
     # Flip around
-    flip_images = spit_p.flips(image, flatten=False)
+    flip_images = spit_p.flips(image)
     # Write PNGs
     for img, suff in zip(flip_images, ['norm','vert','hor','horvert']):
         outfile = outdir+'{:d}'.format(prefix)+'_'+out_pref+'_'+suff+'.png'

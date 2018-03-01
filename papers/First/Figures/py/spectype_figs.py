@@ -21,6 +21,7 @@ from spit import preprocess as spit_p
 from spit import classify as spit_c
 from spit.classifier import Classifier
 
+from linetools import utils as ltu
 
 # Local
 #sys.path.append(os.path.abspath("../Analysis/py"))
@@ -243,9 +244,25 @@ def fig_trim(field=None, outfil=None):
     plt.close()
     print("Wrote: {:s}".format(outfil))
 
+def fig_sngl_test_accuracy(outfile=None, cm=None, return_cm=False):
+    """ Test accuracy figure for one copy of each test frame
+    Includes heuristics
+    """
+    from spit.images import Images
 
-def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
-    """ Test accuracy figure
+    # Predictions
+    pdict = ltu.loadjson('f_tst_acc_all.json')
+
+    # Images
+    images = Images('Kast_test')
+    cls_true = images.cls
+
+    # Loop on images
+    pdb.set_trace()
+
+def fig_full_test_accuracy(outfile=None, cm=None, return_cm=False):
+    """ Test accuracy figure for the full test suite (including replication)
+    No heuristics
     """
     from spit.train import print_test_accuracy
     from spit.images import Images
@@ -266,7 +283,7 @@ def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
 
         # Load images
         print("Loading images..")
-        images = Images('Kast_test')#, debug=True)
+        images = Images('Kast_test')#, single_copy=True)#, debug=True)
 
         # Run me
         print("Classifying..")
@@ -274,6 +291,7 @@ def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
                             show_confusion_matrix=False, show_example_errors=False)
         cls_true = images.cls
         print("Done")
+        # Write to disk
         spit_io.write_classifier_predictions(classifier, 'f_tst_acc.json')
 
         # Get the confusion matrix using sklearn.
@@ -358,7 +376,8 @@ def main(flg_fig):
 
     # Test Accuracy
     if flg_fig & (2**3):
-        fig_test_accuracy()
+        #fig_full_test_accuracy()
+        fig_sngl_test_accuracy()
 
 
 # Command line execution
