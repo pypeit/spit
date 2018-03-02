@@ -33,7 +33,7 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
     outroot = spit_path+'/Kast/PNG/{:s}/'.format(category)
 
     # Flats first (they are the most common)
-    flat_files = glob.glob(spit_path+'/Kast/FITS/{:s}/flat/0_*fits.gz'.format(category))
+    flat_files = glob.glob(spit_path+'/Kast/FITS/{:s}/flat/*fits.gz'.format(category))
     nflats = len(flat_files)
     # Output dir
     outdir = outroot+'flat/'
@@ -41,11 +41,11 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
         os.mkdir(outdir)
     # Loop me
     for flat_file in flat_files:
-        spit_png.make_standard(flat_file, outdir, [2,-8], 0, clobber=clobber)
+        spit_png.make_standard(flat_file, outdir, [0,-8], 0, clobber=clobber)
 
     # Other image types (regularizing to the number of flats)
     for itype in ['arc','bias','standard','science']:
-        files = glob.glob(spit_path+'/Kast/FITS/{:s}/{:s}/0_*fits.gz'.format(category, itype))
+        files = glob.glob(spit_path+'/Kast/FITS/{:s}/{:s}/*fits.gz'.format(category, itype))
         nfiles = len(files)
         # Output dir
         outdir = outroot+'{:s}/'.format(itype)
