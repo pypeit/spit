@@ -283,6 +283,8 @@ def run(instrument, num_iterations=10):
     from spit import preprocess as spit_p
     print_versions()
 
+    print("We will perform {:d} training iterations..".format(num_iterations))
+
     # Load the dataset
     if instrument == 'Kast':
         images_train = KastImages('train')
