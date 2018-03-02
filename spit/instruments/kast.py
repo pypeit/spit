@@ -25,6 +25,7 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
     -------
 
     """
+    bidx = [0,-8]
     # Pre-processing dict
     pdict = preprocess.original_preproc_dict()
 
@@ -41,7 +42,7 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
         os.mkdir(outdir)
     # Loop me
     for flat_file in flat_files:
-        spit_png.make_standard(flat_file, outdir, [0,-8], 0, clobber=clobber)
+        spit_png.make_standard(flat_file, outdir, bidx, 0, pdict, clobber=clobber)
 
     # Other image types (regularizing to the number of flats)
     for itype in ['arc','bias','standard','science']:
@@ -71,7 +72,7 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
                 #if step == 5:
                 #    print(kk, filen)
                 #save_files.append(filen)
-                spit_png.make_standard(filen, outdir, [2,-8], step, pdict, clobber=clobber)
+                spit_png.make_standard(filen, outdir, bidx, step, pdict, clobber=clobber)
             # Check (Debugging)
             #for ifile in save_files:
             #    if 'may19_2015_r1' in ifile:
@@ -170,8 +171,8 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         flg = 0
-        #flg += 2**0   # PNGs
-        flg += 2**1   # copy over FITS
+        flg += 2**0   # PNGs
+        #flg += 2**1   # copy over FITS
     else:
         flg = sys.argv[1]
 

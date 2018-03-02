@@ -1,4 +1,4 @@
-""" Main methods for SPIT"""
+""" Main training methods for SPIT"""
 from __future__ import (print_function, absolute_import, division, unicode_literals)
 
 import tensorflow as tf
@@ -268,28 +268,35 @@ def optimize(classifier, images_train, images_val, save_validation_path, num_ite
     # Print the time-usage.
     print("Time usage: " + str(datetime.timedelta(seconds=int(round(time_dif)))))
 
+
 def print_versions():
     print("Printing library versions")
     print("TensorFlow: " + tf.__version__)
     print("Prety Tensor: " + pt.__version__)
     print("Python: " + sys.version)
 
+
 def run(instrument, num_iterations=10):
-    from spit.images import Images
+    from spit.images import KastImages
     from spit.classifier import Classifier
+    from spit import labels as spit_lbl
+    from spit import preprocess as spit_p
     print_versions()
 
-    # Setup the TensorFlow model
-    classifier = Classifier()
-
     # Load the dataset
-    images_train = Images('Kast_train')
-    images_test = Images('Kast_test')
-    images_val = Images('Kast_validation')
-    #images_train, cls_train, labels_train, filenames_train = .load_linear_pngs(
-    #    data_type="train_data")
-    #images_test, cls_test, labels_test, filenames_test = preprocess.load_linear_pngs(
-    #    data_type="test_data")
+    if instrument == 'Kast':
+        images_train = KastImages('train')
+        images_test = KastImages('test')
+        images_val = KastImages('validation')
+        #
+        label_dict = spit_lbl.kast_label_dict()
+        pdict = spit_p.original_preproc_dict()
+    else:
+        raise IOError("Not ready for this instrument")
+
+    # Setup the TensorFlow model
+    classifier = Classifier(label_dict, pdict)
+
 
 
     # Dataset sizes
@@ -349,7 +356,4 @@ def run(instrument, num_iterations=10):
 
     classifier.session.close()
 
-# Command line execution
-if __name__ == '__main__':
-    run('Kast', num_iterations=1000)
 
