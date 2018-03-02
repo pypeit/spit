@@ -96,10 +96,11 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
 def copy_over_fits(clobber=False):
     import subprocess
     vik_path = spit_path+'/Kast/FITS/Viktor/' # Downloaded from Google Drive
+    x_path = '/data/Lick/Kast/data/' # Downloaded from Google Drive
     oldroot = spit_path+'/Kast/FITS/old/'
     newroot = spit_path+'/Kast/FITS/'
     # Skip files (bad ones somehow crept in)
-    bad_files = ['oct6_2016_r34']
+    bad_files = ['oct6_2016_r34']  # There are another ~9 files
     for iset in ['test', 'train', 'validation']:
         for itype in ['flat', 'arc','bias','standard','science']:
             newdir = newroot+'/{:s}/{:s}/'.format(iset, itype)
@@ -110,8 +111,15 @@ def copy_over_fits(clobber=False):
                 # Parse me
                 basename = os.path.basename(ifile)
                 if 'xavier' in basename:
-                    continue
+                    i0 = basename.find('raw_')+4
+                    i1 = basename.find('_Raw')
+                    i2 = basename.find('.fits')
+                    # Folder
+                    fldr = basename[i0:i1]
+                    fnm = basename[i1+5:i2]
+                    pdb.set_trace()
                 else: # Tiffany's files
+                    continue
                     i0 = 2
                     i1 = max(basename.find('_r'), basename.find('_b'))
                     i2 = basename.find('.fits')
