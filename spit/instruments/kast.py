@@ -117,6 +117,9 @@ def copy_over_fits(clobber=False):
                     # Folder
                     fldr = basename[i0:i1]
                     fnm = basename[i1+5:i2]
+                    # Files
+                    xfile = x_path+'/{:s}/{:s}.fits.gz'.format(fldr, fnm)
+                    newfile = newdir+'{:s}_{:s}.fits.gz'.format(fldr, fnm)
                     pdb.set_trace()
                 else: # Tiffany's files
                     continue
@@ -126,7 +129,7 @@ def copy_over_fits(clobber=False):
                     # Folder
                     fldr = basename[i0:i1]
                     fnm = basename[i1+1:i2]
-                    # Original
+                    # Files
                     vikfile = vik_path+'/{:s}/{:s}.fits.gz'.format(fldr, fnm)
                     newfile = newdir+'{:s}_{:s}.fits.gz'.format(fldr, fnm)
                     skip = False
