@@ -118,9 +118,12 @@ def copy_over_fits(clobber=False):
                     fldr = basename[i0:i1]
                     fnm = basename[i1+5:i2]
                     # Files
-                    xfile = x_path+'/{:s}/{:s}.fits.gz'.format(fldr, fnm)
+                    xfile = x_path+'/{:s}/Raw/{:s}.fits.gz'.format(fldr, fnm)
                     newfile = newdir+'{:s}_{:s}.fits.gz'.format(fldr, fnm)
-                    pdb.set_trace()
+                    skip = False
+                    if (not os.path.isfile(newfile)) or clobber:
+                        if not skip:
+                            subprocess.call(['cp', '-rp', xfile, newfile])
                 else: # Tiffany's files
                     continue
                     i0 = 2
