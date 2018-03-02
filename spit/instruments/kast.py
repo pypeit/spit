@@ -93,6 +93,48 @@ def generate_pngs(category, clobber=False, seed=12345, debug=False, regular=True
                 pdb.set_trace()
 
 
+def copy_over_fits(clobber=False):
+    import subprocess
+    vik_path = spit_path+'/Kast/FITS/Viktor/' # Downloaded from Google Drive
+    oldroot = spit_path+'/Kast/FITS/old/'
+    newroot = spit_path+'/Kast/FITS/'
+    # Skip files (bad ones somehow crept in)
+    bad_files = ['oct6_2016_r34']
+    for iset in ['test', 'train', 'validation']:
+        for itype in ['flat', 'arc','bias','standard','science']:
+            newdir = newroot+'/{:s}/{:s}/'.format(iset, itype)
+            #
+            files = glob.glob(oldroot+'/{:s}/{:s}/0_*.fits.gz'.format(iset,itype))
+            files.sort()
+            for ifile in files:
+                # Parse me
+                basename = os.path.basename(ifile)
+                if 'xavier' in basename:
+                    continue
+                else: # Tiffany's files
+                    i0 = 2
+                    i1 = max(basename.find('_r'), basename.find('_b'))
+                    i2 = basename.find('.fits')
+                    # Folder
+                    fldr = basename[i0:i1]
+                    fnm = basename[i1+1:i2]
+                    # Original
+                    vikfile = vik_path+'/{:s}/{:s}.fits.gz'.format(fldr, fnm)
+                    newfile = newdir+'{:s}_{:s}.fits.gz'.format(fldr, fnm)
+                    skip = False
+                    if not os.path.isfile(vikfile):
+                        if fldr+'_'+fnm in [bad_files]:
+                            print("Skipping: {:s}_{:s}".format(fldr, fnm))
+                            skip = True
+                        else:
+                            pdb.set_trace()
+                    # Copy
+                    if (not os.path.isfile(newfile)) or clobber:
+                        if not skip:
+                            retval = subprocess.call(['cp', '-rp', vikfile, newfile])
+
+
+
 #### ########################## #########################
 def main(flg):
 
@@ -102,10 +144,11 @@ def main(flg):
         generate_pngs('test', regular=True)  # Also regularized
         generate_pngs('validation', regular=True)  # Also regularized
 
-    # Generate PNGs
+    # Copy over FITS files
     if flg & (2**1):
-        #make_rr_plots('Hectospec')
-        make_rr_plots('DEIMOS')
+        copy_over_fits()
+
+    # Generate PNGs
 
 # Command line execution
 if __name__ == '__main__':
@@ -113,8 +156,8 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         flg = 0
-        flg += 2**0   # PNGs
-        #flg += 2**1   # Generate RedRock plots
+        #flg += 2**0   # PNGs
+        flg += 2**1   # copy over FITS
     else:
         flg = sys.argv[1]
 
