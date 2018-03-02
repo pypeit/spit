@@ -33,9 +33,24 @@ def main(pargs):
 
     from spit.training import run
 
+    if isinstance(pargs, tuple):
+        instr = pargs[0]
+        niter = pargs[1]
+    else:
+        instr = pargs.instr
+        niter = pargs.niter
+
     # Instrument specific
-    if pargs.instr == 'Kast':
-        run(pargs.instr, num_iterations=pargs.niter)
+    if instr == 'Kast':
+        run(instr, num_iterations=niter)
     else:
         raise IOError("Not ready for this instrument")
 
+# Command line execution
+if __name__ == '__main__':
+    import sys
+
+    instr = sys.argv[1]
+    ninter = int(sys.argv[2])
+
+    main((instr, ninter))
