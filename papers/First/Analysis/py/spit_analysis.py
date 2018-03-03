@@ -32,7 +32,7 @@ def chk_test_images():
 
     for itype in ['flat', 'arc', 'bias','standard','science']:
         # Grab the names
-        files = glob.glob(path+'/{:s}/0_*fits.gz'.format(itype))
+        files = glob.glob(path+'/{:s}/*fits.gz'.format(itype))
         files.sort()
 
         # Loop on em

@@ -18,7 +18,7 @@ class Classifier(object):
     @classmethod
     def load_kast(cls, arch_path=None):
         if arch_path is None:
-            arch_path = os.getenv('SPIT_DATA')+'/Kast/checkpoints/'
+            arch_path = os.getenv('SPIT_DATA')+'/Kast/checkpoints/final/'
         # Grab best
         croot = arch_path+'best_validation'
         # Tack on dict's

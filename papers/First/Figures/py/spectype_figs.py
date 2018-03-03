@@ -308,7 +308,7 @@ def fig_full_test_accuracy(outfile=None, cm=None, return_cm=False, acc_file=None
     """ Test accuracy figure for the full test suite (including replication)
     No heuristics
     """
-    from spit.train import print_test_accuracy
+    from spit.training import print_test_accuracy
     from spit.images import KastImages
     from spit import io as spit_io
     import json
@@ -357,13 +357,13 @@ def fig_full_test_accuracy(outfile=None, cm=None, return_cm=False, acc_file=None
     ndiag = np.sum(cm[0,:])
     for ii in range(cm.shape[0]):
         diffcm[ii,ii] -= ndiag
-
+    vmnx = np.max(np.abs(diffcm))
     fig = plt.figure(figsize=(7, 5))
     ax = fig.add_subplot(111)
 
     # Plot the confusion matrix as an image.
     #mpl = ax.matshow(cm, vmin=0, vmax=100, cmap='tab20c')#vmin=0, vmax=80)#, cmap='hot')
-    mpl = ax.matshow(diffcm, vmin=np.min(diffcm), vmax=np.max(diffcm), cmap='seismic')#, cmap='hot')
+    mpl = ax.matshow(diffcm, vmin=-1*vmnx, vmax=vmnx, cmap='seismic')#, cmap='hot')
 
     # Make various adjustments to the plot.
     cb = fig.colorbar(mpl, fraction=0.030, pad=0.04)
