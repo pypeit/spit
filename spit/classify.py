@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np, os, sys
 
 from spit import image_loader as il
-from spit.main import predict_cls_test, cls_accuracy
+from spit.train import predict_cls, cls_accuracy
 from collections import Counter
 
 # Use PrettyTensor to simplify Neural Network construction.
@@ -15,7 +15,7 @@ def print_test_accuracy(show_example_errors=False,
 
     # For all the images in the test-set,
     # calculate the predicted classes and whether they are correct.
-    correct, cls_pred = predict_cls_test()
+    correct, cls_pred = predict_cls()
 
     # Classification accuracy and the number of correct classifications.
     acc, num_correct = cls_accuracy(correct)

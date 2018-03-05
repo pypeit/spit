@@ -247,7 +247,7 @@ def fig_trim(field=None, outfil=None):
 def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
     """ Test accuracy figure
     """
-    from spit.main import print_test_accuracy
+    from spit.train import print_test_accuracy
     from spit.images import Images
     from sklearn.metrics import confusion_matrix
     from spit import preprocess

@@ -31,10 +31,13 @@ class Images(object):
         kwargs
         """
         # Check
-        if img_type not in['kast_test_data']:
+        if img_type not in['Kast_train', 'Kast_test', 'Kast_validation']:
             raise IOError('Not ready for img_type: {:s}'.format(img_type))
 
+        # Parse
+        instr, itype = img_type.split('_')
+
         # Load
-        self.images, self.cls, self.labels, self.filenames = load_linear_pngs(data_type=img_type)
+        self.images, self.cls, self.labels, self.filenames = load_linear_pngs(instr, itype)
 
 

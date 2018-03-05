@@ -31,21 +31,28 @@ label_dict['standard_label']=2
 label_dict['arc_label']=3
 label_dict['flat_label']=4
 
-def load_linear_pngs(data_type, img_path='/scratch/citrisdance_viktor/'):
+spit_path = os.getenv('SPIT_DATA')
+
+def load_linear_pngs(instr, data_type, debug=False):
     image_data = {}
 
     # Define the image locations
+    data_locations = []
+    for itype in ['flat', 'arc', 'bias','standard','science']:
+        data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/*png'.format(data_type, itype))
+
+    '''
     if data_type == "train_data":
         load_batch_size = 504
         data_locations = [ \
-            img_path+"viktor_astroimage/linear_datasets/bias_train/*", \
-            img_path+"viktor_astroimage/linear_datasets/science_train/*", \
-            img_path+"viktor_astroimage/linear_datasets/standard_train/*", \
-            img_path+"viktor_astroimage/linear_datasets/arc_train/*", \
-            img_path+"viktor_astroimage/linear_datasets/flat_train/*", \
-            img_path+"viktor_astroimage/linear_datasets/bias_validation/*", \
-            img_path+"viktor_astroimage/linear_datasets/science_validation/*", \
-            img_path+"viktor_astroimage/linear_datasets/standard_validation/*", \
+            spit_path+"viktor_astroimage/linear_datasets/bias_train/*", \
+            spit_path+"viktor_astroimage/linear_datasets/science_train/*", \
+            spit_path+"viktor_astroimage/linear_datasets/standard_train/*", \
+            spit_path+"viktor_astroimage/linear_datasets/arc_train/*", \
+            spit_path+"viktor_astroimage/linear_datasets/flat_train/*", \
+            spit_path+"viktor_astroimage/linear_datasets/bias_validation/*", \
+            spit_path+"viktor_astroimage/linear_datasets/science_validation/*", \
+            spit_path+"viktor_astroimage/linear_datasets/standard_validation/*", \
             img_path+"viktor_astroimage/linear_datasets/arc_validation/*", \
             img_path+"viktor_astroimage/linear_datasets/flat_validation/*", \
             img_path+"viktor_astroimage/linear_datasets/bias_test/*", \
@@ -65,6 +72,7 @@ def load_linear_pngs(data_type, img_path='/scratch/citrisdance_viktor/'):
             img_path+"viktor_astroimage/linear_datasets/real_standard_test/*", \
             img_path+"viktor_astroimage/linear_datasets/real_arc_test/*", \
             img_path+"viktor_astroimage/linear_datasets/real_flat_test/*"]
+    '''
 
     # Construct the dict arrays
     raw_data = []
@@ -80,7 +88,6 @@ def load_linear_pngs(data_type, img_path='/scratch/citrisdance_viktor/'):
             image_data = misc.imread(image_file, mode='L')
             padded_image = image_data.flatten()
             image_array.append(padded_image)
-            image_label = 0
             if "bias" in image_file:
                 image_label = label_dict['bias_label']
             elif "science" in image_file:
@@ -91,6 +98,8 @@ def load_linear_pngs(data_type, img_path='/scratch/citrisdance_viktor/'):
                 image_label = label_dict['arc_label']
             elif "flat" in image_file:
                 image_label = label_dict['flat_label']
+            else:
+                pdb.set_trace()
 
             image_labels.append(image_label)
             image_filenames.append(image_file)
@@ -106,7 +115,7 @@ def load_linear_pngs(data_type, img_path='/scratch/citrisdance_viktor/'):
     # Get the class-numbers for each image. Convert to numpy-array.
     cls = np.array(labels)
 
-    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=5), filenames
 
 def load_images():
     data_locations = [ \
