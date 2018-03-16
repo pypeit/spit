@@ -98,7 +98,6 @@ def mktab_images(outfil='tab_images.tex', sub=False):
 
     # Build the table
     tbl = Table()
-    #print("We have {:d} Traning images [WARNING: SOME ARE FOR TESTS!]".format(ntrain))
     tbl['Type'] = types
     tbl['Date'] = dates
     tbl['Frame'] = frames
