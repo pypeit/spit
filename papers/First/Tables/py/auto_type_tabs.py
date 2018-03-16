@@ -59,31 +59,31 @@ def mktab_images(outfil='tab_images.tex', sub=False):
             for ipath in files:
                 # Parse
                 ifile = os.path.basename(ipath)
-                if 'xavier' in ifile:
+                if ifile[0] == '2':
                     pis += ['Prochaska']
                     # Find date
-                    year = ifile[20:24]
+                    year = ifile[0:4]
                     try:
-                        month = ddict[ifile[24:27].upper()]
+                        month = ddict[ifile[4:7].upper()]
                     except KeyError:
                         pdb.set_trace()
-                    day = ifile[27:29]
+                    day = ifile[7:9]
                     dates.append('{:s}-{:d}-{:s}'.format(year,month,day))
                     # Frame
                     i1 = ifile.find('.fits')
-                    frames.append(ifile[34:i1])
+                    frames.append(ifile[10:i1])
                 else:
                     pis += ['Hsyu']
                     # Find date
                     i0 = ifile.find('_20')
                     year = ifile[i0+1:i0+5]
                     try:
-                        month = ddict[ifile[2:6].upper()]
+                        month = ddict[ifile[0:4].upper()]
                     except:
-                        month = ddict[ifile[2:5].upper()]
-                        day = ifile[5:i0]
+                        month = ddict[ifile[0:3].upper()]
+                        day = ifile[3:i0]
                     else:
-                        day = ifile[6:i0]
+                        day = ifile[4:i0]
                     dates.append('{:s}-{:d}-{:s}'.format(year,month,day))
                     # Frame
                     i1 = ifile.find('.fits')
