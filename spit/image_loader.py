@@ -25,6 +25,7 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
     single_copy : bool, optional
       Only grab one copy (with flips) of each image
     """
+
     image_data = {}
 
     # Define the image locations
@@ -34,6 +35,7 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
             data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/0_*png'.format(data_type, itype))
         else:
             data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/*png'.format(data_type, itype))
+
 
     '''
     if data_type == "train_data":
@@ -114,6 +116,7 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=len(label_dict)), \
            filenames
+
 
 
 
