@@ -26,6 +26,7 @@ Using SPIT
    :maxdepth: 2
 
    scripts
+   running
 
 Indices and tables
 ------------------
