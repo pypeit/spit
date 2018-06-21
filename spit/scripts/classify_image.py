@@ -16,6 +16,7 @@ def parser(options=None):
     # Parse
     parser = argparse.ArgumentParser(description='Run SPIT on an image [v1]')
     parser.add_argument("image_file", type=str, help="Image to classify (e.g. r6.fits)")
+    parser.add_argument("--exten", type=int, default=0, help="Extension (default=0)")
     #parser.add_argument("--zmax", type=float, help="Maximum redshift for analysis")
 
     if options is None:
@@ -29,12 +30,15 @@ def main(pargs):
     """ Run
     """
     import numpy as np
-    import warnings
 
     from spit.classify import classify_me
+    from spit.classifier import Classifier
+
+    # Classifier
+    kast = Classifier.load_kast()
 
     # Do it
-    answer = classify_me(pargs.image_file)
+    _, _, answer = classify_me(pargs.image_file, kast, exten=pargs.exten)
 
     print("=======================================================")
     print("You input the image: {:s}".format(pargs.image_file))

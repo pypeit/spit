@@ -23,12 +23,25 @@ def write_array_to_png(img, outfile, verbose=False):
         print("Wrote image to {:s}".format(outfile))
 
 
-def read_fits(image_file):
+def read_fits(image_file, exten=0):
+    """
+
+    Parameters
+    ----------
+    image_file
+    exten : int, optional
+      Extension the FITS HDUList
+
+    Returns
+    -------
+    image : ndarray
+
+    """
     from astropy.io import fits
 
     # Open the fits file
     fits_f = fits.open(image_file, 'readonly')
-    hdu = fits_f[0]
+    hdu = fits_f[exten]
     image = hdu.data
 
     # Return
