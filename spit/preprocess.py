@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 from PIL import Image
-import tensorflow as tf
 import pdb
 
 from spit import zscale as aut_z
