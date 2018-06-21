@@ -10,6 +10,7 @@ import warnings
 import pytest
 
 from spit.classify import classify_me
+from spit.classifier import Classifier
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
@@ -18,13 +19,12 @@ def data_path(filename):
 
 def test_classify_arc():
     save_dir = resource_filename('spit', '/data/checkpoints/kast_original/')
+    # Classifier
+    kast = Classifier.load_kast()
     if os.path.isdir(save_dir):
         # Tests from_dict too
-        answer = classify_me(data_path('r6.fits'))
-        assert answer == 'ARC'
-    # Failure
-    with pytest.raises(IOError):
-        answer = classify_me(data_path('r6.fits'), classifier_root='this_better_fail')
+        _, _, answer = classify_me(data_path('r6.fits'), kast)
+        assert answer.upper() == 'ARC'
 
 
 

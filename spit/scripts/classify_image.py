@@ -41,5 +41,5 @@ def main(pargs):
     _, _, answer = classify_me(pargs.image_file, kast, exten=pargs.exten)
 
     print("=======================================================")
-    print("You input the image: {:s}".format(pargs.image_file))
+    print("You input the image: {:s}, extension={:d}".format(pargs.image_file, pargs.exten))
     print("   SPIT classified it as a type:  {:s}".format(answer))
