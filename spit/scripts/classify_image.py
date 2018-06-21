@@ -6,11 +6,6 @@ from __future__ import (print_function, absolute_import, division, unicode_liter
 
 import pdb
 
-try:  # Python 3
-    ustr = unicode
-except NameError:
-    ustr = str
-
 def parser(options=None):
     import argparse
     # Parse
@@ -29,8 +24,6 @@ def parser(options=None):
 def main(pargs):
     """ Run
     """
-    import numpy as np
-
     from spit.classify import classify_me
     from spit.classifier import Classifier
 
