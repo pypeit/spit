@@ -14,13 +14,16 @@ mpl.rcParams['font.family'] = 'stixgeneral'
 from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 
+from sklearn.metrics import confusion_matrix
 
 from astropy.io import fits
 
 from spit import preprocess as spit_p
 from spit import classify as spit_c
 from spit.classifier import Classifier
+from spit import labels as spit_lbl
 
+from linetools import utils as ltu
 
 # Local
 #sys.path.append(os.path.abspath("../Analysis/py"))
@@ -29,13 +32,13 @@ from spit.classifier import Classifier
 
 def setup_image_set(set=['all']):
     # Images
-    img_path = os.getenv('HOME')+'/Lick/Kast/data/2014aug28/Raw/'
+    set_path = os.getenv('SPIT_DATA')+'/Kast/FITS/train/'
     images = []
-    images.append(dict(type='Bias', frame='b227'))
-    images.append(dict(type='Flat', frame='b295'))
-    images.append(dict(type='Arc', frame='b294'))
-    images.append(dict(type='Standard', frame='b289'))
-    images.append(dict(type='Science', frame='b264'))
+    images.append(dict(type='Bias', frame='feb3_2016_b35'))
+    images.append(dict(type='Flat', frame='sept11_2015_r23'))
+    images.append(dict(type='Arc', frame='june30_2016_b8'))
+    images.append(dict(type='Standard', frame='nov7_2015_b72'))
+    images.append(dict(type='Science', frame='aug18_2015_b39'))
     # Parse
     if set[0] == 'all':
         final_images = images
@@ -45,7 +48,7 @@ def setup_image_set(set=['all']):
             if image['type'] in set:
                 final_images.append(images[kk].copy())
     # Return
-    return img_path, final_images
+    return set_path, final_images
 
 def fig_images(field=None, outfil=None):
     """ Spectral images
@@ -53,7 +56,7 @@ def fig_images(field=None, outfil=None):
     # Init
     if outfil is None:
         outfil = 'fig_spec_images.png'
-    img_path, images = setup_image_set()
+    set_path, images = setup_image_set()
 
     # Targets only
     plt.figure(figsize=(5, 5))
@@ -67,6 +70,7 @@ def fig_images(field=None, outfil=None):
     cm = plt.get_cmap('Greys')
     for tt,image in enumerate(images):
         ax = plt.subplot(gs[tt])
+        img_path = set_path+'/{:s}/'.format(image['type'].lower())
 
         # Load
         hdu = fits.open(img_path+image['frame']+'.fits.gz')
@@ -84,24 +88,25 @@ def fig_images(field=None, outfil=None):
         ax.axis('off')
 
         # Labels
-        ax.text(0.07, 0.90, image['type'], transform=ax.transAxes, color='b',
+        ax.text(0.12, 0.90, image['type'], transform=ax.transAxes, color='b',
                 size='large', ha='left', va='top')
         #ax_hecto.set_xlim(imsize/2., -imsize/2.)
         #ax_hecto.set_ylim(-imsize/2., imsize/2.)
 
     plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
-    plt.savefig(outfil, dpi=700)
+    plt.savefig(outfil, dpi=300)
     plt.close()
     print("Wrote: {:s}".format(outfil))
 
-def fig_zscale(field=None, outfil=None):
+def fig_zscale(outfil=None):
     """ Compare two views of the same image.
     With and without ZSCALE
     """
     # Init
     if outfil is None:
         outfil = 'fig_zscale.png'
-    img_path, images = setup_image_set(set=['Bias'])
+    set_path, images = setup_image_set(set=['Bias'])
+    img_path = set_path+'/{:s}/'.format(images[0]['type'].lower())
     # Load bias
     hdu = fits.open(img_path+images[0]['frame']+'.fits.gz')
     img = hdu[0].data
@@ -119,7 +124,7 @@ def fig_zscale(field=None, outfil=None):
     # Without zscale
     ax0 = plt.subplot(gs[0])
     # Plot
-    ax0.imshow(img, cmap=cm, vmin=0, vmax=1062)
+    ax0.imshow(img, cmap=cm, vmin=0, vmax=1362)
     # Axes
     ax0.axis('off')
 
@@ -139,7 +144,7 @@ def fig_zscale(field=None, outfil=None):
     #        size='large', ha='left', va='top')
 
     plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
-    plt.savefig(outfil, dpi=700)
+    plt.savefig(outfil, dpi=300)
     plt.close()
     print("Wrote: {:s}".format(outfil))
 
@@ -152,7 +157,7 @@ def fig_find_trimsec(outfile=None):
         outfile = 'fig_find_trimsec.pdf'
 
     # Load image
-    arc_file = resource_filename('auto_type', 'tests/files/r6.fits')
+    arc_file = resource_filename('spit', 'tests/files/r6.fits')
     hdulist = fits.open(arc_file)
     img = hdulist[0].data
 
@@ -185,7 +190,7 @@ def fig_find_trimsec(outfile=None):
     #                    handletextpad=0.1, fontsize='large')
 
     plt.tight_layout(pad=0.2,h_pad=0.3,w_pad=0.0)
-    plt.savefig(outfile, dpi=700)
+    plt.savefig(outfile, dpi=300)
     plt.close()
     print("Wrote: {:s}".format(outfile))
 
@@ -199,7 +204,7 @@ def fig_trim(field=None, outfil=None):
         outfil = 'fig_trim.png'
 
     # Load image
-    arc_file = resource_filename('auto_type', 'tests/files/r6.fits')
+    arc_file = resource_filename('spit', 'tests/files/r6.fits')
     hdulist = fits.open(arc_file)
     img = hdulist[0].data
 
@@ -244,71 +249,154 @@ def fig_trim(field=None, outfil=None):
     print("Wrote: {:s}".format(outfil))
 
 
-def fig_test_accuracy(outfile=None, cm=None, return_cm=False):
-    """ Test accuracy figure
+def fig_sngl_test_accuracy(outfile='fig_sngl_test.png', cm=None, return_cm=False):
+    """ Test accuracy figure for one copy of each test frame
+    Includes heuristics
     """
-    from spit.train import print_test_accuracy
-    from spit.images import Images
-    from sklearn.metrics import confusion_matrix
-    from spit import preprocess
-    from spit.image_loader import label_dict
-    num_classes = preprocess.num_classes
+    # Init
+    label_dict = spit_lbl.kast_label_dict()
+
+    # Predictions
+    pdict = ltu.loadjson('../Analysis/chk_test_images.json')
+    ytrue = np.array(pdict['true'])
+    ypred = np.array(pdict['predictions'])
+
+    cm = confusion_matrix(y_true=ytrue,
+                          y_pred=ypred)
+
+    # Print the confusion matrix as text.
+    print(cm)
+    diffcm = cm.copy()
+
+    # Subtract expected images off the diagonal to show the difference
+    for ii in range(cm.shape[0]):
+        diffcm[ii,ii] -= np.sum(cm[ii,:])
+
+    # Stats
+    nimg = np.sum(cm[:])
+    nmiss = np.sum(diffcm[diffcm > 0])
+    perc_miss = nmiss / nimg
+    print("Final accuracy = {}%".format(100*(1.-perc_miss)))
+    pdb.set_trace()
+
+    nunknwn = np.sum(diffcm[1:,0])
+    perc_unknwn = nunknwn / nimg
+    print("Percent unknown = {}%".format(100*perc_unknwn))
+
+
+    fig = plt.figure(figsize=(7, 5))
+    ax = fig.add_subplot(111)
+
+    # Plot the confusion matrix as an image.
+    #mpl = ax.matshow(cm)#, vmin=0, vmax=100, cmap='tab20c')#vmin=0, vmax=80)#, cmap='hot')
+    vmnx = np.max(np.abs(diffcm.flatten()))
+    mpl = ax.matshow(diffcm, vmin=-1*vmnx, vmax=vmnx, cmap='seismic')#, cmap='hot')
+
+    # Make various adjustments to the plot.
+    cb = fig.colorbar(mpl, fraction=0.030, pad=0.04)
+    cb.set_label(r'$\Delta N$ Images')
+
+    # Labels
+    labels = []
+    for key in label_dict.keys():
+        labels.append(key.split('_')[0])
+    ax.set_xticklabels(['','unknown']+labels+[''])
+    ax.set_yticklabels(['','unknown']+labels+[''])
+
+    #tick_marks = np.arange(num_classes)
+    #plt.xticks(tick_marks, range(num_classes))
+    #plt.yticks(tick_marks, range(num_classes))
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('True')
+
+    # Finish
+    #plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
+    fig.savefig(outfile, dpi=700)
+    plt.close()
+    print("Wrote: {:s}".format(outfile))
+
+
+def fig_full_test_accuracy(outfile=None, cm=None, return_cm=False, acc_file=None):
+    """ Test accuracy figure for the full test suite (including replication)
+    No heuristics
+    """
+    from spit.training import print_test_accuracy
+    from spit.images import KastImages
+    from spit import io as spit_io
+    import json
 
     # Init
+    label_dict = spit_lbl.kast_label_dict()
     if outfile is None:
-        outfile = 'fig_test_accuracy.png'
+        outfile = 'fig_full_test_accuracy.png'
 
     if cm is None:
         # Load classifier and initialize
-        classifier = Classifier(resource_filename('spit', '/data/checkpoints/kast_original/best_validation'))
+        #classifier = Classifier(resource_filename('spit', '/data/checkpoints/kast_original/best_validation'))
+        classifier = Classifier.load_kast()
 
-        # Load images
-        images = Images('kast_test_data')
-
-        # Run me
-        print_test_accuracy(classifier, images,
-                            show_confusion_matrix=False, show_example_errors=False)
-
+        print("Loading images..")
+        images = KastImages('test')#, single_copy=True)#, debug=True)
         cls_true = images.cls
+
+        # Classify images?
+        if acc_file is None:
+            # Run me
+            print("Classifying..")
+            print_test_accuracy(classifier, images,
+                                show_confusion_matrix=False, show_example_errors=False)
+            print("Done")
+            # Write to disk
+            spit_io.write_classifier_predictions(classifier, 'f_tst_acc.json')
+            ypred = classifier.cls_pred
+        else:
+            with open(acc_file, 'rt') as fh:
+                obj = json.load(fh)
+            ypred = np.array(obj['predictions'])
+
 
         # Get the confusion matrix using sklearn.
         cm = confusion_matrix(y_true=cls_true,
-                              y_pred=classifier.cls_pred)
+                              y_pred=ypred)
         if return_cm:
             return cm
 
     # Print the confusion matrix as text.
     print(cm)
+    diffcm = cm.copy()
 
-    plt.figure(figsize=(12, 5))
-    plt.clf()
+    # Subtract expected images off the diagonal to show the difference
+    ndiag = np.sum(cm[0,:])
+    for ii in range(cm.shape[0]):
+        diffcm[ii,ii] -= ndiag
+    vmnx = np.max(np.abs(diffcm))
+    fig = plt.figure(figsize=(7, 5))
+    ax = fig.add_subplot(111)
 
     # Plot the confusion matrix as an image.
-    mpl = plt.matshow(cm)
+    #mpl = ax.matshow(cm, vmin=0, vmax=100, cmap='tab20c')#vmin=0, vmax=80)#, cmap='hot')
+    mpl = ax.matshow(diffcm, vmin=-1*vmnx, vmax=vmnx, cmap='seismic')#, cmap='hot')
 
     # Make various adjustments to the plot.
-    cb = plt.colorbar(mpl, fraction=0.030, pad=0.04)
-    cb.set_label('N Images')
+    cb = fig.colorbar(mpl, fraction=0.030, pad=0.04)
+    cb.set_label(r'$\Delta N$ Images')
 
     # Labels
     labels = []
     for key in label_dict.keys():
-        labels.append(key.split('_'))
+        labels.append(key.split('_')[0])
+    ax.set_xticklabels(['']+labels+[''])
+    ax.set_yticklabels(['']+labels+[''])
 
-    '''
-    tick_marks = np.array(labels)
-    plt.xticks(range(len(labels)), tick_marks)
-    plt.yticks(range(len(labels)), tick_marks)
-    '''
-    tick_marks = np.arange(num_classes)
-    plt.xticks(tick_marks, range(num_classes))
-    plt.yticks(tick_marks, range(num_classes))
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
+    #tick_marks = np.arange(num_classes)
+    #plt.xticks(tick_marks, range(num_classes))
+    #plt.yticks(tick_marks, range(num_classes))
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('True')
 
     # Finish
     #plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.0)
-    plt.savefig(outfile, dpi=700)
+    fig.savefig(outfile, dpi=700)
     plt.close()
     print("Wrote: {:s}".format(outfile))
 
@@ -353,7 +441,8 @@ def main(flg_fig):
 
     # Test Accuracy
     if flg_fig & (2**3):
-        fig_test_accuracy()
+        #fig_full_test_accuracy(acc_file='f_tst_acc_all.json')
+        fig_sngl_test_accuracy()
 
 
 # Command line execution

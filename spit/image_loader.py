@@ -2,44 +2,40 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # Requirements:
 import numpy as np, glob, os, sys
-from enum import Enum
 
 from scipy import misc
 
-from collections import OrderedDict
 
 import pdb
 
-from spit.classify import one_hot_encoded
-from spit import io as spit_io
-from spit import preprocess as spit_pre
+from spit.utils import one_hot_encoded
 
 sys.dont_write_bytecode = True
 
-class Frames(Enum):
-    BIAS        = 0
-    SCIENCE     = 1
-    STANDARD    = 2
-    ARC         = 3
-    FLAT        = 4
-
-# Mapping from image type to index
-label_dict = OrderedDict()
-label_dict['bias_label']=0
-label_dict['science_label']=1
-label_dict['standard_label']=2
-label_dict['arc_label']=3
-label_dict['flat_label']=4
 
 spit_path = os.getenv('SPIT_DATA')
 
-def load_linear_pngs(instr, data_type, debug=False):
+def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False):
+    """ Load PNGs
+
+    Parameters
+    ----------
+    label_dict : dict
+      Sets label values
+    single_copy : bool, optional
+      Only grab one copy (with flips) of each image
+    """
+
     image_data = {}
 
     # Define the image locations
     data_locations = []
     for itype in ['flat', 'arc', 'bias','standard','science']:
-        data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/*png'.format(data_type, itype))
+        if single_copy:
+            data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/0_*png'.format(data_type, itype))
+        else:
+            data_locations.append(spit_path+'/'+instr+'/PNG/{:s}/{:s}/*png'.format(data_type, itype))
+
 
     '''
     if data_type == "train_data":
@@ -81,10 +77,13 @@ def load_linear_pngs(instr, data_type, debug=False):
 
     for index, location in enumerate(data_locations):
         images = glob.glob(location)
+        images.sort() # So that the ordering is the same each time
         image_array = []
         image_labels = []
         image_filenames = []
-        for image_file in images:
+        for kk, image_file in enumerate(images):
+            if debug and (kk == 10):
+                break
             image_data = misc.imread(image_file, mode='L')
             padded_image = image_data.flatten()
             image_array.append(padded_image)
@@ -115,45 +114,13 @@ def load_linear_pngs(instr, data_type, debug=False):
     # Get the class-numbers for each image. Convert to numpy-array.
     cls = np.array(labels)
 
-    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=5), filenames
+    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=len(label_dict)), \
+           filenames
 
-def load_images():
-    data_locations = [ \
-        "images/bias/linear*", \
-        "images/science/linear*", \
-        "images/standard/linear*", \
-        "images/arc/linear*", \
-        "images/flat/linear*"]
 
-    raw_data = []
-    labels = []
-    filenames = []
 
-    for index, location in enumerate(data_locations):
-        images = glob.glob(location)
-        image_array = []
-        image_labels = []
-        image_filenames = []
-        for image_file in images:
-            image_data = misc.imread(image_file, mode='L')
-            padded_image = image_data.flatten()
 
-            image_array.append(padded_image)
-            image_labels.append(index)
-            image_filenames.append(image_file)
-
-        raw_data = raw_data + image_array
-        labels = labels + image_labels
-        filenames = filenames + image_filenames
-
-    # Get the raw images.
-    raw_images = np.array(raw_data)
-
-    # Get the class-numbers for each image. Convert to numpy-array.
-    cls = np.array(labels)
-
-    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
-
+'''
 def load_all_data():
     data_locations = [ \
         "images/bias/linear*", \
@@ -236,8 +203,9 @@ def load_all_data():
     cls = np.array(labels)
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+'''
 
-
+''' 
 def load_images_arr(image_file, outfile=None):
     """ Convert an input FITS file into 4 flattened arrays
     having flipped it around
@@ -371,3 +339,4 @@ def load_data_cropped200x600(data_type, img_path='/soe/vjankov/scratchdisk/'):
     cls = np.array(labels)
 
     return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=num_classes), filenames
+'''

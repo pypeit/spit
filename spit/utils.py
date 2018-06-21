@@ -1,7 +1,7 @@
 """ Module for base-level methods for SPIT"""
 from __future__ import print_function, absolute_import, division, unicode_literals
 
-import numpy as n
+import numpy as np
 import scipy.interpolate
 import scipy.ndimage
 import pdb
@@ -33,38 +33,38 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
     True - inarray is resampled by(i-1)/(x-1) * (j-1)/(y-1)
     This prevents extrapolation one element beyond bounds of input array.
     '''
-    if not a.dtype in [n.float64, n.float32]:
-        a = n.cast[float](a)
+    if not a.dtype in [np.float64, np.float32]:
+        a = np.cast[float](a)
 
-    m1 = n.cast[int](minusone)
-    ofs = n.cast[int](centre) * 0.5
-    old = n.array(a.shape)
+    m1 = np.cast[int](minusone)
+    ofs = np.cast[int](centre) * 0.5
+    old = np.array(a.shape)
     ndims = len(a.shape)
     if len(newdims) != ndims:
         print("[congrid] dimensions error. " \
         "This routine currently only support " \
         "rebinning to the same number of dimensions.")
         return None
-    newdims = n.asarray(newdims, dtype=float)
+    newdims = np.asarray(newdims, dtype=float)
     dimlist = []
 
     if method == 'neighbour':
         for i in range(ndims):
-            base = n.indices(newdims)[i]
+            base = np.indices(newdims)[i]
             dimlist.append((old[i] - m1) / (newdims[i] - m1) \
                            * (base + ofs) - ofs)
-        cd = n.array(dimlist).round().astype(int)
+        cd = np.array(dimlist).round().astype(int)
         newa = a[list(cd)]
         return newa
 
     elif method in ['nearest', 'linear']:
         # calculate new dims
         for i in range(ndims):
-            base = n.arange(newdims[i])
+            base = np.arange(newdims[i])
             dimlist.append((old[i] - m1) / (newdims[i] - m1) \
                            * (base + ofs) - ofs)
         # specify old dims
-        olddims = [n.arange(i, dtype=n.float) for i in list(a.shape)]
+        olddims = [np.arange(i, dtype=np.float) for i in list(a.shape)]
 
         # first interpolation - for ndims = any
         mint = scipy.interpolate.interp1d(olddims[-1], a, kind=method)
@@ -87,11 +87,11 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
         return newa
     elif method in ['spline']:
         oslices = [slice(0, j) for j in old]
-        oldcoords = n.ogrid[oslices]
+        oldcoords = np.ogrid[oslices]
         nslices = [slice(0, j) for j in list(newdims)]
-        newcoords = n.mgrid[nslices]
+        newcoords = np.mgrid[nslices]
 
-        newcoords_dims = range(n.rank(newcoords))
+        newcoords_dims = range(np.rank(newcoords))
         # make first index last
         newcoords_dims.append(newcoords_dims.pop(0))
         newcoords_tr = newcoords.transpose(newcoords_dims)
@@ -99,7 +99,7 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
 
         newcoords_tr += ofs
 
-        deltas = (n.asarray(old) - m1) / (newdims - m1)
+        deltas = (np.asarray(old) - m1) / (newdims - m1)
         newcoords_tr *= deltas
 
         newcoords_tr -= ofs
@@ -111,3 +111,23 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
         "Currently only \'neighbour\', \'nearest\',\'linear\',", \
         "and \'spline\' are supported.")
         return None
+
+
+def one_hot_encoded(class_numbers, num_classes=None):
+    """
+    Generate the One-Hot encoded class-labels from an array of integers.
+    For example, if class_number=2 and num_classes=4 then
+    the one-hot encoded label is the float array: [0. 0. 1. 0.]
+    :param class_numbers:
+        Array of integers with class-numbers.
+        Assume the integers are from zero to num_classes-1 inclusive.
+    :param num_classes:
+        Number of classes. If None then use max(cls)-1.
+    :return:
+        2-dim array of shape: [len(cls), num_classes]
+    """
+    # Find the number of classes if None is provided.
+    if num_classes is None:
+        num_classes = np.max(class_numbers) - 1
+
+    return np.eye(num_classes, dtype=float)[class_numbers]
