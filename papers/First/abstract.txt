@@ -1,0 +1,19 @@
+We present the Spectral Image Typer (SPIT), a convolutional neural network (CNN)
+built to classify spectral images. In contrast to traditional, rules-based
+algorithms which rely on meta data provided with the image (e.g. header cards),
+SPIT is trained solely on the image data.  We have trained SPIT on 2,004
+human-classified images taken with the Kast spectrometer at Lick Observatory with
+types of Bias, Arc, Flat, Science and Standard. We include several pre-processing
+steps (scaling, trimming) motivated by human practice and also expanded the
+training set to balance between image type and increase diversity. The algorithm
+achieved an accuracy of 98.7% on the held-out validation set and an accuracy of
+98.7% on the test set of images.  We then adopt a slightly modified
+classification scheme to improve robustness at a modestly reduced cost in
+accuracy (98.2%). The majority of mis-classifications are Science frames
+with very faint sources confused with Arc images (e.g. faint emission-line
+galaxies) or Science frames with very bright sources confused with Standard
+stars.  These are errors that even a well-trained human is prone to make.
+Future work will increase the training set from Kast, will include additional
+optical and near-IR instruments, and may expand the CNN architecture complexity.
+We are now incorporating SPIT in the PYPIT data reduction pipeline (DRP) and
+are willing to facilitate its inclusion in other DRPs.
