@@ -9,7 +9,8 @@ import warnings
 
 import pytest
 
-from spit.image_loader import load_images_arr
+from spit.io import read_fits
+from spit import preprocess as spit_p
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
@@ -18,8 +19,12 @@ def data_path(filename):
 
 def test_load_images():
     # Tests from_dict too
-    img_array = load_images_arr(data_path('r6.fits'), outfile=data_path('tmp.png'))
-    assert img_array.shape[0] == 4
+    data = read_fits(data_path('r6.fits'))
+    # Process dict
+    pdict = spit_p.original_preproc_dict()
+    # Process
+    images_array = spit_p.flattened_array(data, pdict)
+    assert images_array.shape[0] == 4
 
 
 

@@ -73,21 +73,34 @@ def get_prediction(images_array, classifier, use_heuristics=False):
     return value, results
 
 
-def classify_me(image_file, classifier, verbose=False):
-    from spit import image_loader as spit_il
+def classify_me(image_file, classifier, verbose=False, exten=0):
+    from spit import io as spit_io
+    from spit import preprocess as spit_p
+    from spit import classify as spit_c
 
 
+    '''
     # Image array (4 flips)
     images_array = spit_il.load_images_arr(image_file)
+    '''
 
-    # Predict
-    prediction, results = get_prediction(images_array, classifier)
+    # Read fits
+    data = spit_io.read_fits(image_file, exten=exten)
+    # Process dict
+    pdict = spit_p.original_preproc_dict()
+    # Process
+    images_array = spit_p.flattened_array(data, pdict)
+
+    # Prediction
+    prediction, results = spit_c.get_prediction(images_array, classifier)
+    pred_type = classifier.classify_dict[prediction]
+
     if verbose:
         print("Input image {:s} is classified as a {:s}".format(image_file,
-                                                                spit_il.Frames(prediction).name))
+                                                                pred_type))
 
     # Return
-    return spit_il.Frames(prediction).name, results
+    return prediction, results, pred_type
 
 
 

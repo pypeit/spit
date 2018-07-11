@@ -64,7 +64,7 @@ setup_keywords['packages'] = ['spit'] #find_packages('pypit')
 #setup_keywords['package_dir'] = {'':''}
 #setup_keywords['cmdclass'] = {'version': DesiVersion, 'test': DesiTest, 'sdist': DistutilsSdist}
 #setup_keywords['test_suite']='{name}.tests.{name}_test_suite.{name}_test_suite'.format(**setup_keywords)
-setup_keywords['setup_requires']=['pytest-runner']
+#setup_keywords['setup_requires']=['pytest-runner']
 setup_keywords['tests_require']=['pytest']
 
 #setup_keywords['cmdclass']={'build_ext': build_ext}
