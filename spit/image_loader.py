@@ -24,6 +24,13 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
       Sets label values
     single_copy : bool, optional
       Only grab one copy (with flips) of each image
+
+    Returns
+    ----------
+    dset: 
+       a Tensorflow Dataset Object containing the images and labels as numpy arrays
+    one_hot:
+       a Tensorflow one-hot encoded array for the label values
     """
 
     image_data = {}
@@ -84,9 +91,11 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
         for kk, image_file in enumerate(images):
             if debug and (kk == 10):
                 break
+            # load image
             image_data = misc.imread(image_file, mode='L')
             padded_image = image_data.flatten()
             image_array.append(padded_image)
+            # get image's type using long logic, could make faster
             if "bias" in image_file:
                 image_label = label_dict['bias_label']
             elif "science" in image_file:
@@ -112,9 +121,12 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
     raw_images = np.array(raw_data)
 
     # Get the class-numbers for each image. Convert to numpy-array.
-    cls = np.array(labels)
+    cls = np.array(labels) # might change cls to cls_nums cuz cls means something different
 
-    return raw_images, cls, one_hot_encoded(class_numbers=cls, num_classes=len(label_dict)), \
+    dset = tf.data.Dataset.from_tensor_slices(raw_images, cls)
+    one_hot = tf.one_hot(indices=cls, depth=len(label_dict), dtype=float)
+
+    return dset, one_hot, \
            filenames
 
 
