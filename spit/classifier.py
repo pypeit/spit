@@ -14,7 +14,7 @@ class Classifier(object):
   def __init__(self, label_dict, preproc_dict, classify_dict, **kwargs):
     self.label_dict = label_dict.copy()
     self.preproc_dict = preproc_dict.copy()
-    # is this for prediction?
+    # is this for prediction? <----
     self.classify_dict = classify_dict.copy() 
     
     # Set up tensorflow/keras model
@@ -31,25 +31,23 @@ class Classifier(object):
     # linear stack of layers
 
     self.model = keras.Sequential([
-        # 2D convolution followed by a maxpool
-        keras.layers.Conv2D(36, kernel_size=5, strides=(1, 1), padding='valid', data_format=None, 
-                              dilation_rate=(1, 1), activation='relu', use_bias=True, 
-                              kernel_initializer='glorot_uniform', bias_initializer='zeros', 
-                              kernel_regularizer=None, bias_regularizer=None, activity_regularizer=None, 
-                              kernel_constraint=None, bias_constraint=None),
-        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid', data_format=None),
-        # And another
+        # 2D convolution followed by a maxpool, change data format when actual dataset etc. comes or when testing
+        keras.layers.Conv2D(36, kernel_size=5, strides=(1, 1), padding='valid', activation='relu', input_shape = (210, 650, 1)),
+        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid'),
+        # And another, this time with 64 filters instead of 36
         keras.layers.Conv2D(64, kernel_size=5, strides=(1, 1), activation='relu'),
-        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid', data_format=None),
-        # Flatten
+        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid'),
+        # Flatten in preparation for FC layer
         keras.layers.Flatten(),
         # FC layer
         keras.layers.Dense(units=128, activation='relu'),
-        # Finish line
-        keras.layers.Dense(len(label_dict), activation='softmax')
+        # Produce 0-1 probabilities with softmax
+        keras.layers.Dense(len(self.label_dict), activation='softmax')
     ])
-    
-    self.optimizer = keras.optimizers.Adam(1e-4) 
+    # convert labels to respective categories for training
+    self.y_train = keras.utils.to_categorical(self.label_dict, num_classes=5)
+    # add optimizer, learning rate, and loss function
+    self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'], rate=1e-4)
     return
   
 
