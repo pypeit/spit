@@ -131,3 +131,38 @@ def one_hot_encoded(class_numbers, num_classes=None):
         num_classes = np.max(class_numbers) - 1
 
     return np.eye(num_classes, dtype=float)[class_numbers]
+
+def display_training_trends(history, key1, key2, title='training', ylabel='loss/accuracy'):
+    """
+    Display the graphs of loss/accuracy during training
+    
+    :param history:
+        Tensorflow History object given after calling Keras' fit() method on your model.
+    :param key1:
+        Key contained within history object that user can provide to plot as compared with other keys.
+        Assume key is a string contained in the history object.
+    :param key2:
+        Key contained within history object that user can provide to plot as compared with other keys.
+        Assume key is a string contained in the history object.
+    :param title:
+        Title of the graph. If caller doesn't specify, use default of 'training'.
+    :param ylabel:
+        Label of the y-axis. If caller doesn't specify, use default of 'loss/accuracy'.
+    """
+    # think of better variable names? ie loss/acc; might need to import tensorflow
+    plt.figure(1)  
+    # summarize history for given keys
+    plt.subplot(211)  
+    # plot history of given params
+    plt.plot(history.history[key1])  
+    plt.plot(history.history[key2])
+    # set plot title  
+    plt.title(title) 
+    # set y label based on params 
+    plt.ylabel(ylabel)                          # could potentially just parse based on if/else statements later since there's only 4 possibilities
+    # set x label to epoch  
+    plt.xlabel('epoch')  
+    # plot legend in upper left
+    plt.legend([key1, key2], loc='upper left')  # could potentially just parse based on if/else statements later since there's only 4 possibilities 
+    # show plot
+    plt.show()  
