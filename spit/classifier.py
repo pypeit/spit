@@ -10,7 +10,11 @@ import tensorflow as tf
 from tensorflow import keras
 
 class Classifier(object):
-  
+
+
+  # For Kast, label_dict = labels.kast_label_dict()
+  # preproc_dict = preprocess.original_preproc_dict()
+  # classify_dict = labels.kast_classify_dict(label_dict)
   def __init__(self, label_dict, preproc_dict, classify_dict, **kwargs):
     self.label_dict = label_dict.copy()
     self.preproc_dict = preproc_dict.copy()
@@ -32,7 +36,8 @@ class Classifier(object):
 
     self.model = keras.Sequential([
         # 2D convolution followed by a maxpool, change data format when actual dataset etc. comes or when testing
-        keras.layers.Conv2D(36, kernel_size=5, strides=(1, 1), padding='valid', activation='relu', input_shape = (210, 650, 1)),
+        keras.layers.Conv2D(36, kernel_size=5, strides=(1, 1), padding='valid', activation='relu', 
+                            input_shape = (self.preproc_dict['image_height'], self.preproc_dict['image_width'], self.preproc_dict['num_channels'])),
         keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid'),
         # And another, this time with 64 filters instead of 36
         keras.layers.Conv2D(64, kernel_size=5, strides=(1, 1), activation='relu'),
@@ -45,7 +50,8 @@ class Classifier(object):
         keras.layers.Dense(len(self.label_dict), activation='softmax')
     ])
     # convert labels to respective categories for training
-    self.y_train = keras.utils.to_categorical(self.label_dict, num_classes=5)
+    self.y_train = keras.utils.to_categorical(list(self.label_dict.values()), 
+                                              num_classes=len(self.label_dict))
     # add optimizer, learning rate, and loss function
     self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'], rate=1e-4)
     return
