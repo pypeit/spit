@@ -8,6 +8,7 @@ from spit import preprocess
 from spit import labels
 import tensorflow as tf
 from tensorflow import keras
+from keras import optimizers
 
 class Classifier(object):
 
@@ -53,7 +54,9 @@ class Classifier(object):
     self.y_train = keras.utils.to_categorical(list(self.label_dict.values()), 
                                               num_classes=len(self.label_dict))
     # add optimizer, learning rate, and loss function
-    self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'], rate=1e-4)
+    adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+
+    self.model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'], rate=1e-4)
     return
   
 
