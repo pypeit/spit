@@ -15,15 +15,22 @@ from spit.utils import one_hot_encoded
 sys.dont_write_bytecode = True
 
 def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False,
-                     spit_path=os.getenv('SPIT_DATA')):
+                     spit_path=os.getenv('SPIT_DATA'),
+                     subset=None):
     """ Load PNGs
 
     Parameters
     ----------
+    instr : str
+        Name of instrument, e.g. 'Kast'
+    data_type : str
+        Training type, e.g. 'train', 'valid'
     label_dict : dict
       Sets label values
     single_copy : bool, optional
       Only grab one copy (with flips) of each image
+    subset : int, optional
+        Only grab a subset of the full list, i.e. the number of files provided by this parameter
 
     Returns
     ----------
@@ -91,6 +98,9 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
         for kk, image_file in enumerate(images):
             if debug and (kk == 10):
                 break
+            if subset is not None:
+                if kk == subset:
+                    break
             # load image
             image_data = imageio.imread(image_file, pilmode='L')
             padded_image = image_data.flatten()
