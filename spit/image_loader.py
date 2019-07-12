@@ -3,7 +3,9 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 # Requirements:
 import numpy as np, glob, os, sys
 
-from scipy import misc
+#from scipy import misc
+
+import imageio
 
 
 import pdb
@@ -92,7 +94,7 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
             if debug and (kk == 10):
                 break
             # load image
-            image_data = misc.imread(image_file, mode='L')
+            image_data = imageio.imread(image_file, pilmode='L')
             padded_image = image_data.flatten()
             image_array.append(padded_image)
             # get image's type using long logic, could make faster
@@ -123,6 +125,8 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
     # Get the class-numbers for each image. Convert to numpy-array.
     cls = np.array(labels) # might change cls to cls_nums cuz cls means something different
 
+    # cls needs to be one-hot!
+    raise IOError
     dset = tf.data.Dataset.from_tensor_slices(raw_images, cls)
     one_hot = tf.one_hot(indices=cls, depth=len(label_dict), dtype=float)
 
