@@ -14,10 +14,8 @@ from spit.utils import one_hot_encoded
 
 sys.dont_write_bytecode = True
 
-
-spit_path = os.getenv('SPIT_DATA')
-
-def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False):
+def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False,
+                     spit_path=os.getenv('SPIT_DATA')):
     """ Load PNGs
 
     Parameters
