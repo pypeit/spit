@@ -16,7 +16,7 @@ sys.dont_write_bytecode = True
 
 def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False,
                      spit_path=os.getenv('SPIT_DATA'),
-                     subset=None):
+                     subset=None, images_only=False):
     """ Load PNGs
 
     Parameters
@@ -31,6 +31,8 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
       Only grab one copy (with flips) of each image
     subset : int, optional
         Only grab a subset of the full list, i.e. the number of files provided by this parameter
+    images_only : bool, optional
+        Return only the images?
 
     Returns
     ----------
@@ -103,8 +105,9 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
                     break
             # load image
             image_data = imageio.imread(image_file, pilmode='L')
-            padded_image = image_data.flatten()
-            image_array.append(padded_image)
+            #padded_image = image_data.flatten()
+            #image_array.append(padded_image)
+            image_array.append(image_data)
             # get image's type using long logic, could make faster
             if "bias" in image_file:
                 image_label = label_dict['bias_label']
@@ -129,9 +132,16 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
     print("Loaded!")
     # Get the raw images.
     raw_images = np.array(raw_data)
+    ishape = list(raw_images.shape)
+    raw_images = raw_images.reshape(ishape+[1])
+    assert len(raw_images.shape) == 4
 
     # Get the class-numbers for each image. Convert to numpy-array.
-    cls = np.array(labels) # might change cls to cls_nums cuz cls means something different
+    lbl_array = np.array(labels) # might change cls to cls_nums cuz cls means something different
+
+    if images_only:
+        return raw_images, lbl_array
+
 
     # cls needs to be one-hot!
     raise IOError
