@@ -5,7 +5,7 @@ import numpy as np
 import scipy.interpolate
 import scipy.ndimage
 import pdb
-
+import matplotlib.pyplot as plt
 
 def congrid(a, newdims, method='linear', centre=False, minusone=False):
     '''Arbitrary resampling of source array to new dimension sizes.
