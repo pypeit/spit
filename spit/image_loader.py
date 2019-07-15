@@ -143,9 +143,9 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
         return raw_images, lbl_array
 
     # cls needs to be one-hot!
-    raise IOError
-    dset = tf.data.Dataset.from_tensor_slices(raw_images, cls)
-    one_hot = tf.one_hot(indices=cls, depth=len(label_dict), dtype=float)
+    # raise IOError
+    dset = tf.data.Dataset.from_tensor_slices((raw_images, lbl_array)) 
+    one_hot = tf.one_hot(indices=lbl_array, depth=len(label_dict), dtype=float)
 
     return dset, one_hot, \
            filenames
