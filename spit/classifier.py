@@ -59,7 +59,48 @@ class Classifier(object):
     self.model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])#, rate=1e-4)
     return
   
+    
+    # This method might need to be modified if the comparison of accuracies
+    # is done while training
+    def save_model(curr_model, test_dset=None, test_labels=None, comparing=False):
+        '''
+        Parameters:
+        curr_model: the model the we are running in this trial
+        test_dset/test_labels: test data in order to compare the accuracies
+        comparing: either it is to save as a checkpoint of the original model
+                    or to compare with a previous model and save the better one
 
+        '''
+        saving_dir = '/data/checkpoints/' # may need to change, depends on where to run the scripts
+        try:
+            old_model = keras.models.load_model(saving_dir+'best_model.h5')
+            old_version = True
+        except:
+            old_version = False
+            pass
+
+        # if we have an older version and we are comparing
+        # then test to see
+        if old_version and comparing:
+            loss, acc = model.evaluate(test_dset, test_labels)
+            old_loss, old_acc = old_model.evaluate(test_dset, test_labels)
+            if acc > old_acc:
+                model.save(saving_dir+'best_model.h5')
+                old_model.save(saving_dir+'prev_model.h5')
+                del model
+                del old_model
+            else:
+                model.save(saving_dir+'prev_model.h5')
+                del model
+
+        # else has two cases:
+        # either we don't have a previous version in the record for any reason
+        # or we don't want to compare, just save a checkpoint of the best one
+        else:
+            model.save(save_dir+'best_model.h5')
+            del model
+
+        return
 # Other architectures
     """
     with pt.defaults_scope(activation_fn=tf.nn.relu):
