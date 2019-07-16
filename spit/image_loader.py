@@ -6,7 +6,7 @@ import numpy as np, glob, os, sys
 #from scipy import misc
 
 import imageio
-
+import tensorflow as tf
 
 import pdb
 
