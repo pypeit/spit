@@ -60,49 +60,67 @@ class Classifier(object):
     return
   
     
-    # This method might need to be modified if the comparison of accuracies
-    # is done while training
-    def save_model(curr_model, test_dset=None, test_labels=None, comparing=False):
-        '''
-        Parameters:
-        curr_model: the model the we are running in this trial
-        test_dset/test_labels: test data in order to compare the accuracies
-        comparing: either it is to save as a checkpoint of the original model
-                    or to compare with a previous model and save the better one
+  # This method might need to be modified if the comparison of accuracies
+  # is done while training
+  def save_model(self, file_name=None, test_dset=None, test_labels=None, comparing=False):
+    '''
+    Method save_model():
+    To save a model. Either as a model itself
 
-        '''
-        saving_dir = '/data/checkpoints/' # may need to change, depends on where to run the scripts
-        try:
-            old_model = keras.models.load_model(saving_dir+'best_model.h5')
-            old_version = True
-        except:
-            old_version = False
-            pass
+    Parameters:
 
-        # if we have an older version and we are comparing
-        # then test to see
-        if old_version and comparing:
-            loss, acc = model.evaluate(test_dset, test_labels)
-            old_loss, old_acc = old_model.evaluate(test_dset, test_labels)
-            if acc > old_acc:
-                model.save(saving_dir+'best_model.h5')
-                old_model.save(saving_dir+'prev_model.h5')
-                del model
-                del old_model
-            else:
-                model.save(saving_dir+'prev_model.h5')
-                del model
+    file_name: The name of the model you want to save as can overwrite previous one
+                should be a string in the format of 'blah.h5'
+    test_dset/test_labels: test data in order to compare the accuracies
+    comparing: either it is to save as a checkpoint of the original model
+              or to compare with a previous model and save the better one
 
-        # else has two cases:
-        # either we don't have a previous version in the record for any reason
-        # or we don't want to compare, just save a checkpoint of the best one
+    '''
+    saving_dir = '/data/checkpoints/' # may need to change, depends on where to run the scripts
+    if comparing:
+      try:
+        old_model = keras.models.load_model(saving_dir+'best_model.h5')
+        old_version = True
+      except:
+        old_version = False
+        pass
+
+      # if we have an older 'best_model' version and we are comparing
+      # then test to see
+      if old_version:
+        loss, acc = self.model.evaluate(test_dset, test_labels)
+        old_loss, old_acc = old_model.evaluate(test_dset, test_labels)
+        if acc > old_acc:
+          self.model.save(saving_dir+file_name)
+          self.model.save(saving_dir+'best_model.h5')
+          del old_model
         else:
-            model.save(save_dir+'best_model.h5')
-            del model
+          self.model.save(saving_dir+file_name)
 
-        return
-# Other architectures
-    """
+      # else there's no best_model on the disk
+      else:
+        self.model.save(saving_dir+file_name)
+        self.model.save(saving_dir+'best_model.h5')
+
+    # Not comparing, simply saving model
+    else:
+      self.model.save(saving_dir+file_name)
+
+    return
+
+  # method to load an existing model to the classifier
+  def load_model(self, file_name):
+    '''
+
+    :param file_name: The model name. Should be a string 'blah.h5'
+    :return:
+    '''
+    
+    self.model = keras.models.load_model(saving_dir+file_name)
+    return
+
+    # Other architectures
+"""
     with pt.defaults_scope(activation_fn=tf.nn.relu):
         y_pred, loss = x_pretty.\
             conv2d(kernel=5, depth=16, name='layer_conv1').\
