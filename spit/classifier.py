@@ -120,7 +120,7 @@ class Classifier(object):
     return
 
     # Other architectures
-"""
+    """
     with pt.defaults_scope(activation_fn=tf.nn.relu):
         y_pred, loss = x_pretty.\
             conv2d(kernel=5, depth=16, name='layer_conv1').\
