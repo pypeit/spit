@@ -82,20 +82,33 @@ class Classifier(object):
 
     model_to_save.save(file_path+file_name)
     return
+  
+  def evaluate(classifier, test_images, test_labels):
+    """
+    Evaluate the model on an unseen dataset.
 
-  def test(self, model, test_dset, test_labels):
-    '''
+    :param classifier:
+        SPIT Classifier object. 
+        Assume model has been constructed and trained.
+    :param test_images:
+        Set of test images not seen by the model yet.
+        Assume this is a numpy array with (batch_size, width, height, num_channels) as its dimensions.
+    :param test_labels:
+        Set of test labels corresponding to test images.
+        Assume this is a vector with (batch_size, 1) as its dimensions.
 
-    :param model: the model you would like to test on
-    :param test_dset: test dataset
-    :param test_labels: test label
-    :return: loss, accuracy of model.evaluate()
-    '''
+    :return:
+      loss: Loss of the evaluated model as a float value.
+      acc: Accuracy of the evaluated model as a float value between 0 and 1.
+    """
 
-    loss, acc = model.evaluate(test_dset, test_labels)
-
+    # make categorical for model
+    y_test = keras.utils.to_categorical(test_labels, num_classes=len(self.label_dict))
+    # evaluate model
+    loss, acc = classifier.model.evaluate(tst, y_test)
+    # return loss and accuracy as array
     return loss, acc
-
+  
   def compare_with_best(self, test_dset, test_labels, file_path):
     '''
     Method to compare current model with the best_model and save a new best_model
