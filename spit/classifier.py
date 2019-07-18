@@ -58,66 +58,73 @@ class Classifier(object):
 
     self.model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])#, rate=1e-4)
     return
-  
-    
-  # This method might need to be modified if the comparison of accuracies
-  # is done while training
-  def save_model(self, file_name=None, test_dset=None, test_labels=None, comparing=False):
-    '''
-    Method save_model():
-    To save a model. Either as a model itself
 
-    Parameters:
-
-    file_name: The name of the model you want to save as can overwrite previous one
-                should be a string in the format of 'blah.h5'
-    test_dset/test_labels: test data in order to compare the accuracies
-    comparing: either it is to save as a checkpoint of the original model
-              or to compare with a previous model and save the better one
-
-    '''
-    saving_dir = '/data/checkpoints/' # may need to change, depends on where to run the scripts
-    if comparing:
-      try:
-        old_model = keras.models.load_model(saving_dir+'best_model.h5')
-        old_version = True
-      except:
-        old_version = False
-        pass
-
-      # if we have an older 'best_model' version and we are comparing
-      # then test to see
-      if old_version:
-        loss, acc = self.model.evaluate(test_dset, test_labels)
-        old_loss, old_acc = old_model.evaluate(test_dset, test_labels)
-        if acc > old_acc:
-          self.model.save(saving_dir+file_name)
-          self.model.save(saving_dir+'best_model.h5')
-          del old_model
-        else:
-          self.model.save(saving_dir+file_name)
-
-      # else there's no best_model on the disk
-      else:
-        self.model.save(saving_dir+file_name)
-        self.model.save(saving_dir+'best_model.h5')
-
-    # Not comparing, simply saving model
-    else:
-      self.model.save(saving_dir+file_name)
-
-    return
-
-  # method to load an existing model to the classifier
-  def load_model(self, file_name):
+  def load_model(self, file_name, file_path):
     '''
 
     :param file_name: The model name. Should be a string 'blah.h5'
-    :return:
+           file_path: The path that the user would like to save to.
+                      In the form of 'blah/foo/bar/'
+    :return: the model loaded
     '''
-    
-    self.model = keras.models.load_model(saving_dir+file_name)
+
+    loaded_model = keras.models.load_model(file_path+file_name)
+    return loaded_model
+
+  def save_model(self, model_to_save, file_name, file_path):
+    '''
+
+    :param file_name: The model name. Should be a string 'blah.h5'
+           file_path: The path that the user would like to save to.
+                      In the form of 'blah/foo/bar/'
+    :return: N/A
+    '''
+
+    model_to_save.save(file_path+file_name)
     return
+
+  def test(self, model, test_dset, test_labels):
+    '''
+
+    :param model: the model you would like to test on
+    :param test_dset: test dataset
+    :param test_labels: test label
+    :return: loss, accuracy of model.evaluate()
+    '''
+
+    loss, acc = model.evaluate(test_dset, test_labels)
+
+    return loss, acc
+
+  def compare_with_best(self, test_dset, test_labels, file_path):
+    '''
+    Method to compare current model with the best_model and save a new best_model
+    :param test_dset: test data
+    :param test_labels: test labels
+    :param file_path: where to save the model. In the form 'blah/foo/bar/'
+    :return: N/A
+    '''
+
+    try:
+      best_model = self.load_model('best_model.h5', file_path)
+      has_best = True
+    except:
+      has_best = False
+      pass
+
+    if has_best:
+      loss_self, acc_self = self.test(self.model, test_dset, test_labels)
+      loss_best, acc_best = self.test(best_model, test_dset, test_labels)
+      if acc_self > acc_best:
+        self.save_model(self.model, 'best_model.h5', file_path)
+        del best_model
+      else:
+        del best_model
+    else:
+      self.save_model(self.model, 'best_model.h5', file_path)
+
+    return
+
 
     # Other architectures
     """
