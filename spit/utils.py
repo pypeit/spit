@@ -132,7 +132,7 @@ def one_hot_encoded(class_numbers, num_classes=None):
 
     return np.eye(num_classes, dtype=float)[class_numbers]
 
-def display_training_trends(history, key1, key2, title='training', ylabel='loss/accuracy'):
+def display_training_trends(history, key1, key2, title='training'):
     """
     Display the graphs of loss/accuracy during training
     
@@ -146,23 +146,37 @@ def display_training_trends(history, key1, key2, title='training', ylabel='loss/
         Assume key is a string contained in the history object.
     :param title:
         Title of the graph. If caller doesn't specify, use default of 'training'.
-    :param ylabel:
-        Label of the y-axis. If caller doesn't specify, use default of 'loss/accuracy'.
     """
-    # think of better variable names? ie loss/acc; might need to import tensorflow
-    plt.figure(1)  
-    # summarize history for given keys
-    plt.subplot(211)  
-    # plot history of given params
-    plt.plot(history.history[key1])  
-    plt.plot(history.history[key2])
-    # set plot title  
+    # make subplots
+    fig, ax1 = plt.subplots()
+
+    # set title of graph
     plt.title(title) 
-    # set y label based on params 
-    plt.ylabel(ylabel)                          # could potentially just parse based on if/else statements later since there's only 4 possibilities
-    # set x label to epoch  
-    plt.xlabel('epoch')  
-    # plot legend in upper left
-    plt.legend([key1, key2], loc='upper left')  # could potentially just parse based on if/else statements later since there's only 4 possibilities 
-    # show plot
-    plt.show()  
+
+    # set x label
+    color = 'tab:red'
+    ax1.set_xlabel('epochs')
+
+    # plot first key
+    ax1.set_ylabel(key1, color=color)  # we already handled the x-label with ax1
+    lns1 = ax1.plot(history.history[key1], color=color, label = key1) # maybe improve labeling 
+    ax1.tick_params(axis='y')
+
+    color = 'tab:blue'
+    legend_loc = 'upper right'
+
+    # instantiate a second axes that shares the same x-axis
+    ax2 = ax1.twinx()  
+
+    # plot second key
+    ax2.set_ylabel(key2, color=color)  # we already handled the x-label with ax1
+    lns2 = ax2.plot(history.history[key2], color=color, label = key2)
+    ax2.tick_params(axis='y') #labelcolor=color
+
+    # legend for two axes
+    lines, labels = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines + lines2, labels + labels2, loc=legend_loc)
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.show()
