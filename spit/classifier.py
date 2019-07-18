@@ -126,8 +126,8 @@ class Classifier(object):
       pass
 
     if has_best:
-      loss_self, acc_self = self.test(self.model, test_dset, test_labels)
-      loss_best, acc_best = self.test(best_model, test_dset, test_labels)
+      loss_self, acc_self = self.evaluate(self.model, test_dset, test_labels)
+      loss_best, acc_best = self.evaluate(best_model, test_dset, test_labels)
       if acc_self > acc_best:
         self.save_model(self.model, 'best_model.h5', file_path)
         del best_model
