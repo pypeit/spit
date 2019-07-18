@@ -105,7 +105,7 @@ class Classifier(object):
     # make categorical for model
     y_test = keras.utils.to_categorical(test_labels, num_classes=len(self.label_dict))
     # evaluate model
-    loss, acc = classifier.model.evaluate(tst, y_test)
+    loss, acc = classifier.model.evaluate(test_images, y_test)
     # return loss and accuracy as array
     return loss, acc
   
