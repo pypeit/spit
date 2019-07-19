@@ -83,11 +83,13 @@ class Classifier(object):
     model_to_save.save(file_path+file_name)
     return
   
-  def evaluate(self, test_images, test_labels):
+  def evaluate(self, test_model=None, test_images, test_labels):
     """
     Evaluate the model on an unseen dataset.
     Assume the model is constructed and trained already.
 
+    :param test_model:
+        An alternative choice for model to test.
     :param test_images:
         Set of test images not seen by the model yet.
         Assume this is a numpy array with (batch_size, width, height, num_channels) as its dimensions.
@@ -103,7 +105,10 @@ class Classifier(object):
     # make categorical for model
     y_test = keras.utils.to_categorical(test_labels, num_classes=len(self.label_dict))
     # evaluate model
-    loss, acc = self.model.evaluate(test_images, y_test)
+    if test_model is None:
+      loss, acc = self.model.evaluate(test_images, y_test)
+    else:
+      loss, acc = test_model.evaluate(test_images, y_test)
     # return loss and accuracy as array
     return loss, acc
   
