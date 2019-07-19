@@ -83,7 +83,7 @@ class Classifier(object):
     model_to_save.save(file_path+file_name)
     return
   
-  def evaluate(self, test_model=None, test_images, test_labels):
+  def evaluate(self, test_images, test_labels, test_model=None):
     """
     Evaluate the model on an unseen dataset.
     Assume the model is constructed and trained already.
@@ -130,7 +130,7 @@ class Classifier(object):
 
     if has_best:
       loss_self, acc_self = self.evaluate(test_dset, test_labels)
-      loss_best, acc_best = self.evaluate(test_model=best_model, test_dset, test_labels)
+      loss_best, acc_best = self.evaluate(test_dset, test_labels, test_model=best_model)
       if acc_self > acc_best:
         self.save_model(self.model, 'best_model.h5', file_path)
         del best_model
