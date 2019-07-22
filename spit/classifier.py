@@ -141,6 +141,154 @@ class Classifier(object):
 
     return
 
+  os.environ['SPIT_PATH'] = "/content/drive/My Drive/Colab Notebooks/SPIT_DATA"
+  os.environ['SAVE_PATH'] = "/content/drive/My Drive/Colab Notebooks/"
+
+  # might need to add subset
+  def _train(self, epochs, batch_size, subset_percent=None, train_images=None, train_labels=None, validation_data=None, steps_per_epoch=None, validation_freq=1, test_model=None):
+    """
+
+    Trains the classifier with given images, labels, and training parameters.
+
+    Parameters:
+
+    :param epochs:
+      Number of epochs of the training. 
+      Must be an integer value.
+
+    :param batch_size:
+      Size of the training batches formed in the process. 
+      Must be an integer value.
+
+    :param save_path:
+      Path to where the best model will be saved.
+
+    :param train_images:
+       Set of images for model to train on.
+       Assume this is a numpy array with (batch_size, width, height, num_channels) as its dimensions.
+
+    :param train_labels:
+      Set of test labels corresponding to test images.
+      Assume this is a rank 1 array with (batch_size, ) as its dimensions.
+
+    :param validation_data:
+      Data to be used for the validation set. 
+      Assume this is a tuple with (images, labels) with same dimensions as train_images, train_labels.
+      If None is specified, validation_data will be None.
+
+    :param steps_per_epoch:
+      Total number of steps (batches of samples) before declaring one epoch finished and starting the next epoch.
+      Assume this is an integer value. If None is specified, this will be None.  
+
+    :param validation_freq:
+      Specifies how many training epochs to run before a new validation run is performed.
+      Assume this is an integer value or a collection containing the epochs at which to run validation (ie [1,2,10]).
+
+    :param test_model:
+      An alternative choice for model to train on. Assume None.
+
+    :param spit_path:
+      Path to the 
+
+    Returns:
+    :returns history:
+      Tensorflow History object containing loss and accuracy data over the training.
+
+    """
+    # choose the model
+    if test_model is None:
+      model = self.model
+    else:
+      model = test_model
+
+    # if None is passed, then use the kast images
+    if train_images is None or train_labels is None:
+      # load training set
+      train = np.load(os.path.join(os.environ['SPIT_PATH'], 'Kast', 'kast_train.npz'))
+      train_images = train['images']
+      train_labels = train['labels']
+
+      # load validation set
+      validate = np.load(os.path.join(os.environ['SPIT_PATH'], 'Kast', 'kast_validate.npz'))
+      v_images = validate['images']
+      v_labels = validate['labels']
+
+      validation_data = (v_images, v_labels)
+
+    # change to categorical and make subsets
+    if validation_data is not None:
+      valid_images, valid_labels = validation_data
+      if subset_percent is not None:
+        valid_images, valid_labels = split_array(valid_images, valid_labels, subset_percent)
+      valid_labels = keras.utils.to_categorical(valid_labels, num_classes=len(label_dict))
+      validation_data = (valid_images, valid_labels)
+
+    if train_images is not None and train_labels is not None:
+      if subset_percent is not None:
+        train_images, train_labels = split_array(train_images, train_labels, subset_percent)
+      train_labels = keras.utils.to_categorical(train_labels, num_classes=len(label_dict))
+
+    # checkpoint to track best model
+    checkpoint=keras.callbacks.ModelCheckpoint(os.environ['SAVE_PATH']+'best_model.h5', monitor='val_acc', save_best_only=True, mode='max')
+
+    # train the model
+    history = model.fit(
+          train_images, 
+          train_labels, 
+          epochs=epochs, 
+          batch_size=batch_size,
+          validation_data=validation_data,
+          steps_per_epoch=steps_per_epoch,
+          validation_freq=validation_freq,
+          callbacks=[checkpoint]
+    )
+    # loss and accuracy data
+    keys = history.history
+    # save to disc differently based on whether validation set was used
+    if len(history.history.keys()) == 2: # can we abstract this away?
+      np.savez_compressed('history.npz', loss=keys['loss'], acc=keys['acc']) #can these keys be abstracted away?
+    else:
+      np.savez_compressed('history.npz', loss=keys['loss'], acc=keys['acc'], val_loss=keys['val_loss'], val_acc=keys['val_acc'])
+
+    return history
+
+  import math
+
+  def split_array(images, labels, subset_percent):
+    """
+    Splits dataset based on a percentage value.
+
+    Parameters:
+    :param images:
+      Images from a dataset to be trained on.
+      4-D Numpy array with (batch_size, width, height, num_channels) as its dimensions.
+
+    :param labels:
+      Labels from a dataset to be trained on.
+      Rank 1 Numpy array with (batch_size,) as its dimensions.
+
+    :param subset_percent:
+      Float value determining percentage of subset to remain.
+
+    Returns:
+    :returns split_images:
+      Numpy array containing a fraction of the initial images parameter (batch_size*subset_percent)
+
+    :returns split_labels:
+      Numpy array containing a fraction of the initial labels parameter (batch_size*subset_percent)
+    """
+
+    # base (max amount of the values per type)
+    base = int((len(labels)/len(label_dict))) 
+    split_images = []
+    split_labels = []
+    for n in range(len(label_dict)):
+      # n * base : floor ( (n+1 * base) * subset_percentage ) from 0 to n
+      lower = n*base
+      upper = int(math.floor(((n+1)*base)*subset_percent))
+      split_images.extend(images[lower:upper])
+      split_labels.extend(labels[lower:upper])
+    return np.asarray(split_images), np.asarray(split_labels)
 
     # Other architectures
     """
