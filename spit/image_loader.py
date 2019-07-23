@@ -3,8 +3,10 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 # Requirements:
 import numpy as np, glob, os, sys
 
-from scipy import misc
+#from scipy import misc
 
+import imageio
+import tensorflow as tf
 
 import pdb
 
@@ -12,18 +14,25 @@ from spit.utils import one_hot_encoded
 
 sys.dont_write_bytecode = True
 
-
-spit_path = os.getenv('SPIT_DATA')
-
-def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False):
+def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=False,
+                     spit_path=os.getenv('SPIT_DATA'),
+                     subset=None, images_only=False):
     """ Load PNGs
 
     Parameters
     ----------
+    instr : str
+        Name of instrument, e.g. 'Kast'
+    data_type : str
+        Training type, e.g. 'train', 'valid'
     label_dict : dict
       Sets label values
     single_copy : bool, optional
       Only grab one copy (with flips) of each image
+    subset : int, optional
+        Only grab a subset of the full list, i.e. the number of files provided by this parameter
+    images_only : bool, optional
+        Return only the images?
 
     Returns
     ----------
@@ -91,10 +100,14 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
         for kk, image_file in enumerate(images):
             if debug and (kk == 10):
                 break
+            if subset is not None:
+                if kk == subset:
+                    break
             # load image
-            image_data = misc.imread(image_file, mode='L')
-            padded_image = image_data.flatten()
-            image_array.append(padded_image)
+            image_data = imageio.imread(image_file, pilmode='L')
+            #padded_image = image_data.flatten()
+            #image_array.append(padded_image)
+            image_array.append(image_data)
             # get image's type using long logic, could make faster
             if "bias" in image_file:
                 image_label = label_dict['bias_label']
@@ -119,12 +132,20 @@ def load_linear_pngs(instr, data_type, label_dict, debug=False, single_copy=Fals
     print("Loaded!")
     # Get the raw images.
     raw_images = np.array(raw_data)
+    ishape = list(raw_images.shape)
+    raw_images = raw_images.reshape(ishape+[1])
+    assert len(raw_images.shape) == 4
 
     # Get the class-numbers for each image. Convert to numpy-array.
-    cls = np.array(labels) # might change cls to cls_nums cuz cls means something different
+    lbl_array = np.array(labels) # might change cls to cls_nums cuz cls means something different
 
-    dset = tf.data.Dataset.from_tensor_slices(raw_images, cls)
-    one_hot = tf.one_hot(indices=cls, depth=len(label_dict), dtype=float)
+    if images_only:
+        return raw_images, lbl_array
+
+    # cls needs to be one-hot!
+    # raise IOError
+    dset = tf.data.Dataset.from_tensor_slices((raw_images, lbl_array)) 
+    one_hot = tf.one_hot(indices=lbl_array, depth=len(label_dict), dtype=float)
 
     return dset, one_hot, \
            filenames
