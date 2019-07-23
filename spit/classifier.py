@@ -9,6 +9,7 @@ from spit import labels
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import optimizers
+import math
 
 class Classifier(object):
 
@@ -141,11 +142,7 @@ class Classifier(object):
 
     return
 
-  os.environ['SPIT_PATH'] = "/content/drive/My Drive/Colab Notebooks/SPIT_DATA"
-  os.environ['SAVE_PATH'] = "/content/drive/My Drive/Colab Notebooks/"
-
-  # might need to add subset
-  def _train(self, epochs, batch_size, subset_percent=None, train_images=None, train_labels=None, validation_data=None, steps_per_epoch=None, validation_freq=1, test_model=None):
+    def _train(self, epochs, batch_size, subset_percent=None, train_images=None, train_labels=None, validation_data=None, steps_per_epoch=None, validation_freq=1, test_model=None, spit_path=os.getenv('SPIT_PATH'), save_path=os.getenv('SAVE_PATH')):
     """
 
     Trains the classifier with given images, labels, and training parameters.
@@ -187,8 +184,9 @@ class Classifier(object):
     :param test_model:
       An alternative choice for model to train on. Assume None.
 
-    :param spit_path:
-      Path to the 
+    :param spit_path & param save_path:
+      Path to the spit images and where the model will be saved respectively.
+      ***Environmental variables must be set by caller or the path must be passed manually.***
 
     Returns:
     :returns history:
@@ -204,12 +202,12 @@ class Classifier(object):
     # if None is passed, then use the kast images
     if train_images is None or train_labels is None:
       # load training set
-      train = np.load(os.path.join(os.environ['SPIT_PATH'], 'Kast', 'kast_train.npz'))
+      train = np.load(os.path.join(spit_path, 'Kast', 'kast_train.npz'))
       train_images = train['images']
       train_labels = train['labels']
 
       # load validation set
-      validate = np.load(os.path.join(os.environ['SPIT_PATH'], 'Kast', 'kast_validate.npz'))
+      validate = np.load(os.path.join(spit_path, 'Kast', 'kast_validate.npz'))
       v_images = validate['images']
       v_labels = validate['labels']
 
@@ -229,7 +227,7 @@ class Classifier(object):
       train_labels = keras.utils.to_categorical(train_labels, num_classes=len(label_dict))
 
     # checkpoint to track best model
-    checkpoint=keras.callbacks.ModelCheckpoint(os.environ['SAVE_PATH']+'best_model.h5', monitor='val_acc', save_best_only=True, mode='max')
+    checkpoint=keras.callbacks.ModelCheckpoint(save_path+'best_model.h5', monitor='val_acc', save_best_only=True, mode='max')
 
     # train the model
     history = model.fit(
@@ -251,9 +249,7 @@ class Classifier(object):
       np.savez_compressed('history.npz', loss=keys['loss'], acc=keys['acc'], val_loss=keys['val_loss'], val_acc=keys['val_acc'])
 
     return history
-
-  import math
-
+  
   def split_array(images, labels, subset_percent):
     """
     Splits dataset based on a percentage value.
@@ -277,17 +273,20 @@ class Classifier(object):
     :returns split_labels:
       Numpy array containing a fraction of the initial labels parameter (batch_size*subset_percent)
     """
-
-    # base (max amount of the values per type)
-    base = int((len(labels)/len(label_dict))) 
     split_images = []
     split_labels = []
-    for n in range(len(label_dict)):
-      # n * base : floor ( (n+1 * base) * subset_percentage ) from 0 to n
-      lower = n*base
-      upper = int(math.floor(((n+1)*base)*subset_percent))
-      split_images.extend(images[lower:upper])
-      split_labels.extend(labels[lower:upper])
+    
+    # get all unique labels
+    uni_lbls = np.unique(labels)
+    
+    # find all instances of labels and subset based on that
+    for uni_lbl in uni_lbls:
+      idx = np.where(labels==uni_lbl)[0]
+      # 0 : len(idx)*subset_percent
+      lower = 0
+      upper = int(math.floor(len(idx)*subset_percent))
+      split_images.extend(images[idx[lower:upper]])
+      split_labels.extend(labels[idx[lower:upper]])
     return np.asarray(split_images), np.asarray(split_labels)
 
     # Other architectures
