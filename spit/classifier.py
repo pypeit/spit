@@ -217,13 +217,13 @@ class Classifier(object):
     if validation_data is not None:
       valid_images, valid_labels = validation_data
       if subset_percent is not None:
-        valid_images, valid_labels = split_array(valid_images, valid_labels, subset_percent)
+        valid_images, valid_labels = self.model.split_array(valid_images, valid_labels, subset_percent)
       valid_labels = keras.utils.to_categorical(valid_labels, num_classes=len(label_dict))
       validation_data = (valid_images, valid_labels)
 
     if train_images is not None and train_labels is not None:
       if subset_percent is not None:
-        train_images, train_labels = split_array(train_images, train_labels, subset_percent)
+        train_images, train_labels = self.model.split_array(train_images, train_labels, subset_percent)
       train_labels = keras.utils.to_categorical(train_labels, num_classes=len(label_dict))
 
     # checkpoint to track best model
