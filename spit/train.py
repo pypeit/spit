@@ -6,6 +6,7 @@ import numpy as np
 import datetime
 import os, sys, time
 import pdb
+import math
 
 # Use PrettyTensor to simplify Neural Network construction.
 import prettytensor as pt
