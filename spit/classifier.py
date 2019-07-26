@@ -9,6 +9,7 @@ from spit import labels
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import optimizers
+import math
 
 class Classifier(object):
 
@@ -140,7 +141,6 @@ class Classifier(object):
       self.save_model(self.model, 'best_model.h5', file_path)
 
     return
-
 
     # Other architectures
     """
