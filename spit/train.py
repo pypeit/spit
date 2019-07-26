@@ -31,7 +31,7 @@ require_improvement = 10000
 # Counter for total number of iterations performed so far.
 total_iterations = 0
 
-  def _train(model, epochs, batch_size, subset_percent=None, train_images=None, train_labels=None, validation_data=None, steps_per_epoch=None, validation_freq=1, spit_path=os.getenv('SPIT_PATH'), save_path=os.getenv('SAVE_PATH')):
+def train_model(model, epochs, batch_size, subset_percent=None, train_images=None, train_labels=None, validation_data=None, steps_per_epoch=None, validation_freq=1, spit_path=os.getenv('SPIT_PATH'), save_path=os.getenv('SAVE_PATH')):
     """
     Trains the classifier with given images, labels, and training parameters.
     Parameters:
@@ -120,7 +120,7 @@ total_iterations = 0
 
     return history
   
-  def split_array(images, labels, subset_percent):
+def split_array(images, labels, subset_percent):
     """
     Splits dataset based on a percentage value.
     Parameters:
