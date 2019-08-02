@@ -137,7 +137,7 @@ def display_training_trends(history, key1, key2, title='training'):
     Display the graphs of loss/accuracy during training
     
     :param history:
-        Tensorflow History object given after calling Keras' fit() method on your model.
+        Tensorflow History object or Numpy Decompressed File object.
     :param key1:
         Key contained within history object that user can provide to plot as compared with other keys.
         Assume key is a string contained in the history object.
@@ -147,6 +147,14 @@ def display_training_trends(history, key1, key2, title='training'):
     :param title:
         Title of the graph. If caller doesn't specify, use default of 'training'.
     """
+    h = None
+    if  'tensorflow' in str(type(history)):
+      h = history.history
+      print("h is history.history")
+    else:
+      h = history
+      print("h is history")
+    print(h)
     # make subplots
     fig, ax1 = plt.subplots()
 
@@ -159,18 +167,18 @@ def display_training_trends(history, key1, key2, title='training'):
 
     # plot first key
     ax1.set_ylabel(key1, color=color)  # we already handled the x-label with ax1
-    lns1 = ax1.plot(history.history[key1], color=color, label = key1) # maybe improve labeling 
+    lns1 = ax1.plot(h[key1], color=color, label = key1) # maybe improve labeling 
     ax1.tick_params(axis='y')
 
     color = 'tab:blue'
-    legend_loc = 'upper right'
+    legend_loc = 'best'
 
     # instantiate a second axes that shares the same x-axis
     ax2 = ax1.twinx()  
 
     # plot second key
     ax2.set_ylabel(key2, color=color)  # we already handled the x-label with ax1
-    lns2 = ax2.plot(history.history[key2], color=color, label = key2)
+    lns2 = ax2.plot(h[key2], color=color, label = key2)
     ax2.tick_params(axis='y') #labelcolor=color
 
     # legend for two axes
