@@ -31,43 +31,62 @@ require_improvement = 10000
 # Counter for total number of iterations performed so far.
 total_iterations = 0
 
-def train_model(model, epochs, batch_size, subset_percent=None, train_images=None, train_labels=None, validation_data=None, steps_per_epoch=None, validation_freq=1, spit_path=os.getenv('SPIT_PATH'), save_path=os.getenv('SAVE_PATH')):
+def train_model(epochs, batch_size, subset_percent=None, train_images=None, train_labels=None, validation_data=None, steps_per_epoch=None, validation_freq=1, test_model=None, spit_path=os.getenv('SPIT_PATH'), save_path=os.getenv('SAVE_PATH')):
     """
+
     Trains the classifier with given images, labels, and training parameters.
+
     Parameters:
-    :param model:
-      A Keras model to be trained. 
+
     :param epochs:
       Number of epochs of the training. 
       Must be an integer value.
+
     :param batch_size:
       Size of the training batches formed in the process. 
       Must be an integer value.
+
     :param save_path:
       Path to where the best model will be saved.
+
     :param train_images:
        Set of images for model to train on.
        Assume this is a numpy array with (batch_size, width, height, num_channels) as its dimensions.
+
     :param train_labels:
       Set of test labels corresponding to test images.
       Assume this is a rank 1 array with (batch_size, ) as its dimensions.
+
     :param validation_data:
       Data to be used for the validation set. 
       Assume this is a tuple with (images, labels) with same dimensions as train_images, train_labels.
       If None is specified, validation_data will be None.
+
     :param steps_per_epoch:
       Total number of steps (batches of samples) before declaring one epoch finished and starting the next epoch.
       Assume this is an integer value. If None is specified, this will be None.  
+
     :param validation_freq:
       Specifies how many training epochs to run before a new validation run is performed.
       Assume this is an integer value or a collection containing the epochs at which to run validation (ie [1,2,10]).
+
+    :param test_model:
+      An alternative choice for model to train on. Assume None.
+
     :param spit_path & param save_path:
       Path to the spit images and where the model will be saved respectively.
       ***Environmental variables must be set by caller or the path must be passed manually.***
+
     Returns:
     :returns history:
       Tensorflow History object containing loss and accuracy data over the training.
+
     """
+    # choose the model
+    if test_model is None:
+      model = test_model
+    else:
+      model = test_model
 
     # if None is passed, then use the kast images
     if train_images is None or train_labels is None:
@@ -87,17 +106,17 @@ def train_model(model, epochs, batch_size, subset_percent=None, train_images=Non
     if validation_data is not None:
       valid_images, valid_labels = validation_data
       if subset_percent is not None:
-        valid_images, valid_labels = self.model.split_array(valid_images, valid_labels, subset_percent)
+        valid_images, valid_labels = split_array(valid_images, valid_labels, subset_percent)
       valid_labels = keras.utils.to_categorical(valid_labels, num_classes=len(label_dict))
       validation_data = (valid_images, valid_labels)
 
     if train_images is not None and train_labels is not None:
       if subset_percent is not None:
-        train_images, train_labels = self.model.split_array(train_images, train_labels, subset_percent)
+        train_images, train_labels = split_array(train_images, train_labels, subset_percent)
       train_labels = keras.utils.to_categorical(train_labels, num_classes=len(label_dict))
 
     # checkpoint to track best model
-    checkpoint=keras.callbacks.ModelCheckpoint(save_path+'best_model.h5', monitor='val_acc', save_best_only=True, mode='max')
+    checkpoint=keras.callbacks.ModelCheckpoint(save_path+'best_model.h5', monitor='val_accuracy', save_best_only=True, mode='max')
 
     # train the model
     history = model.fit(
@@ -110,14 +129,11 @@ def train_model(model, epochs, batch_size, subset_percent=None, train_images=Non
           validation_freq=validation_freq,
           callbacks=[checkpoint]
     )
-    # loss and accuracy data
+    
+    # save loss and accuracy data
     keys = history.history
-    # save to disc differently based on whether validation set was used
-    if len(history.history.keys()) == 2: # can we abstract this away?
-      np.savez_compressed('history.npz', loss=keys['loss'], accuracy=keys['accuracy']) #can these keys be abstracted away?
-    else:
-      np.savez_compressed('history.npz', loss=keys['loss'], accuracy=keys['accuracy'], val_loss=keys['val_loss'], val_accuracy=keys['val_accuracy'])
-
+    np.savez_compressed('history.npz', loss=keys['loss'], accuracy=keys['accuracy'], val_loss=keys['val_loss'], val_accuracy=keys['val_accuracy'])
+    
     return history
   
 def split_array(images, labels, subset_percent):
