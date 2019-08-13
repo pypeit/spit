@@ -150,11 +150,8 @@ def display_training_trends(history, key1, key2, title='training'):
     h = None
     if  'tensorflow' in str(type(history)):
       h = history.history
-      print("h is history.history")
     else:
       h = history
-      print("h is history")
-    print(h)
     # make subplots
     fig, ax1 = plt.subplots()
 
