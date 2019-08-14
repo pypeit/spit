@@ -17,21 +17,29 @@ class Classifier(object):
   # For Kast, label_dict = labels.kast_label_dict()
   # preproc_dict = preprocess.original_preproc_dict()
   # classify_dict = labels.kast_classify_dict(label_dict)
-  def __init__(self, label_dict, preproc_dict, classify_dict, **kwargs):
+  def __init__(self, label_dict, preproc_dict, classify_dict, architecture="DenseNet", **kwargs):
     self.label_dict = label_dict.copy()
     self.preproc_dict = preproc_dict.copy()
     # is this for prediction? <----
     self.classify_dict = classify_dict.copy() 
     
-    # Set up tensorflow/keras model
-    self.init_session()
+    # hyperparameters
+    self.filters = 64
+    self.dropout_rate = .2
+    # self.theta = .5
+    self.growth_rate = 4
     
+    if "DenseNet" in architecture:
+      self.init_dense_net()
+    else:
+      # Set up cnn
+      self.init_cnn()
   
   # One major change from tf1.0 to tf2.0
   # is that tf.layers module no longer relies on tf.variable_scope
   # and no more use of tf.placeholder
   # no more session.run() although not actual functioning originally 
-  def init_session(self):
+  def init_cnn(self):
     
     # building a simple model
     # linear stack of layers
@@ -59,7 +67,86 @@ class Classifier(object):
 
     self.model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])#, rate=1e-4)
     return
+  # need to add compression to either block, transition, or both to get it to be BC
 
+  def dense_block(self):
+    """
+    Adds a dense block to the densenet model
+    Parameters: None
+    Returns: None
+    """
+    # 1x1 convolution bottleneck
+    self.model.add(keras.layers.BatchNormalization())
+    self.model.add(keras.layers.ReLU())
+    #### HYPERPARAMETERS: GROWTH RATE AND DROPOUT RATE ####
+    self.model.add(keras.layers.Conv2D(self.growth_rate*self.filters, kernel_size=1))
+    self.model.add(keras.layers.Dropout(rate=self.dropout_rate))
+    # 3x3 dense convolution
+    self.model.add(keras.layers.BatchNormalization())
+    self.model.add(keras.layers.ReLU())
+    #### HYPERPARAMETER ####
+    self.model.add(keras.layers.Conv2D(self.filters, kernel_size=3))
+    #### HYPERPARAMETER ####
+    self.model.add(keras.layers.Dropout(rate=self.dropout_rate))
+
+    return
+
+  def transition_layer(self):
+    """
+    Adds a transition layer to the DenseNet.
+    
+    Parameters: None
+    Returns: None
+    """
+    self.model.add(keras.layers.BatchNormalization())      
+    self.model.add(keras.layers.ReLU())                     
+    self.model.add(keras.layers.Conv2D(self.filters, kernel_size=1))
+    self.model.add(keras.layers.Dropout(rate=self.dropout_rate))
+    self.model.add(keras.layers.AveragePooling2D(pool_size=(2,2), strides=2))
+    return
+
+  def init_dense_net(self):
+      #### DENSE NET ARCHITECTURE #####
+      #
+      # CONV --> BLOCK --> TRANSITION --> BLOCK --> TRANSITION --> BLOCK --> POOL --> SOFTMAX
+      #
+      # BLOCK:
+      # BatchNorm --> ReLu --> Conv (1x1) --> DropOut --> BatchNorm --> ReLu --> Conv (3x3) --> DropOut --> output
+      """
+      Builds a DenseNet-B model for the Classifier.
+      
+      Parameters: None
+      Returns: None
+      """
+      self.model = keras.Sequential()
+
+      # add a conv layer
+      self.model.add(keras.layers.Conv2D(self.filters, kernel_size=7, strides=(2, 2), padding='valid', activation='relu', 
+                                  input_shape = (210, 650, 1)))
+
+      # pool like in tf simple implementation
+      self.model.add(keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding='valid'))
+
+      # add block
+      self.dense_block()
+      # add transition
+      self.transition_layer()
+      # add block
+      self.dense_block()
+      # add transition
+      self.transition_layer()
+      # add block
+      self.dense_block()
+      # add pool
+      self.model.add(keras.layers.GlobalAveragePooling2D())
+      # add flatten
+      self.model.add(keras.layers.Flatten())
+
+      # Produce 0-1 probabilities with softmax
+      self.model.add(keras.layers.Dense(len(self.label_dict), activation='softmax'))
+
+      self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+  
   def load_model(self, file_name, file_path):
     '''
 
